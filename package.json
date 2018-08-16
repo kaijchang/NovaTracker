@@ -1,0 +1,14 @@
+{
+  "name": "novablitzlogviewer",
+  "version": "0.1.0",
+  "description": "View NovaBlitz Logs",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "author": "Kai Chang",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^2.0.7"
+  }
+}
