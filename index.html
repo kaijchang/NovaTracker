@@ -12,24 +12,29 @@
 
     <script>if (window.module) module = window.module;</script>
 
-    <style> body {background: black !important;} </style>
+    <style> body {
+      background: url(./images/supernova.jpg) no-repeat rgb(30,30,30) fixed center !important;
+      background-size: cover;
+    }
+    </style>
 
     <title>NovaBlitz Game Log</title>
   </head>
   <body>
-    <table class="table table-dark table-striped">
-      <thead>
-        <tr>
-          <th scope="col">Type</th>
-          <th scope="col">Against</th>
-          <th scope="col">Time</th>
-          <th scope="col">Won</th>
-          <th scope="col">Turns</th>
-        </tr>
-      </thead>
-      <tbody>
-      </tbody>
-    </table>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+      <a class="navbar-brand" href="#">NovaTracker</a>
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav mr-auto">
+          <li class="nav-item active">
+            <a class="nav-link" href="#">Games</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">Charts</a>
+        </ul>
+      </div>
+    </nav>
+    <div class="container-fluid">
+    </div>
   </body>
   <script>
     require("./renderer.js");

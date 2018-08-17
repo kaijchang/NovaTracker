@@ -17,28 +17,61 @@ fs.readdirSync(game_folder).forEach(folder => {
 	} 
 });
 
-
 function populateChart() {
 	$("tbody").empty();
+	fs.readFile(path.join(game_folder, log_folder, "game_log_file.json"), (err, logs) => {
+		var logs = JSON.parse(logs);
 
-	var logs = JSON.parse(fs.readFileSync(path.join(game_folder, log_folder, "game_log_file.json")));
+		logs.reverse().forEach(game => {
+			var won = game["IsPlayerWinner"] ? 'Yes' : 'No';
+			$("tbody").append(`<tr>
+									<td>` + game["Format"] + `
+						   			<td>` + game["OpponentPlayerData"]["displayName"] + `</td>
+						   			<td><time class="timeago" datetime="` + game["LogElements"][game["LogElements"].length - 1]["LogTime"] + `">` + game["StartTime"] + `</time>
+						   			<td>` + won + `</td>
+						   			<td>` + game["LogElements"][game["LogElements"].length - 1]["Turn"] + `</td>
+						   	   </tr>`);
+		});
 	
-	logs.reverse().forEach(game => {
-		var won = game["IsPlayerWinner"] ? 'Yes' : 'No';
-		$("tbody").append(`<tr>
-								<td>` + game["Format"] + `
-						   		<td>` + game["OpponentPlayerData"]["displayName"] + `</td>
-						   		<td><time class="timeago" datetime="` + game["StartTime"] + `">` + game["StartTime"] + `</time>
-						   		<td>` + won + `</td>
-						   		<td>` + game["LogElements"][game["LogElements"].length - 1]["Turn"] + `</td>
-						   </tr>`);
+		$("time.timeago").timeago();
 	});
-	
-	$("time.timeago").timeago();
 }
 
-fs.watchFile(path.join(game_folder, log_folder, "game_log_file.json"), (curr, prev) => {
-	populateChart();
-});
+function gamePage() {
+	$(".container-fluid").empty();
 
-populateChart();
+	$(".active").removeClass("active");
+	$("a:contains(Games)").parent().addClass("active");
+
+	$(".container-fluid").append(`<table class="table table-dark table-striped">
+       		<thead>
+        	<tr>
+        	  <th scope="col">Type</th>
+        	  <th scope="col">Against</th>
+        	  <th scope="col">Time</th>
+        	  <th scope="col">Won</th>
+        	  <th scope="col">Turns</th>
+        	</tr>
+      		</thead>
+      		<tbody>
+      		</tbody>
+       </table>`);
+
+	fs.watchFile(path.join(game_folder, log_folder, "game_log_file.json"), (curr, prev) => {
+		populateChart();
+	});
+
+	populateChart();
+}
+
+function chartPage() {
+	$(".container-fluid").empty();
+
+	$(".active").removeClass("active");
+	$("a:contains(Charts)").parent().addClass("active");
+}
+
+$("a:contains(Games)").click(gamePage);
+$("a:contains(Charts)").click(chartPage);
+
+gamePage();
