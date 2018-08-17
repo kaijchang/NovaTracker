@@ -1,13 +1,36 @@
 <!DOCTYPE html>
-  <html>
-    <head>
-      <meta charset="UTF-8">
-      <title>Hello World!</title>
-    </head>
-    <body>
-      <h1>Hello World!</h1>
-      We are using node <script>document.write(process.versions.node)</script>,
-      Chrome <script>document.write(process.versions.chrome)</script>,
-      and Electron <script>document.write(process.versions.electron)</script>.
-    </body>
-  </html>
+<html>
+  <head>
+    <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
+
+    <script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
+
+    <script src="scripts/jquery-3.3.1.min.js"></script>
+    <script src="scripts/popper.min.js"></script>
+    <script src="node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="scripts/jquery.timeago.js"></script>
+
+    <script>if (window.module) module = window.module;</script>
+
+    <style> body {background: black !important;} </style>
+
+    <title>NovaBlitz Game Log</title>
+  </head>
+  <body>
+    <table class="table table-dark table-striped">
+      <thead>
+        <tr>
+          <th scope="col">Type</th>
+          <th scope="col">Against</th>
+          <th scope="col">Time</th>
+          <th scope="col">Won</th>
+        </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+  </body>
+  <script>
+    require("./renderer.js");
+  </script>
+</html>
