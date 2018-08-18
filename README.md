@@ -2,6 +2,8 @@
 
 ![app.png](https://github.com/kajchang/NovaTracker/raw/master/images/app.png)
 
+![chart.png](https://github.com/kajchang/NovaTracker/raw/master/images/chart.png)
+
 A Electron App to store, analyze, and display NovaBlitz game history from the NovaBlitz game logs.
 
 # Installation

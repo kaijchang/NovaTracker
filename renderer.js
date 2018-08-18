@@ -163,7 +163,7 @@ function winRateChart() {
 			labels: ["Overall", "Divine", "Chaos", "Arcane", "Nature", "Tech"],
 			datasets: [{
 				label: "% of Wins",
-				data: [+(winRecord["wonGames"].length / (winRecord["wonGames"].length + winRecord["lostGames"].length) * 100).toFixed(2), +(chaosRecord["wins"] / (chaosRecord["wins"] + chaosRecord["losses"]) * 100).toFixed(2), +(arcaneRecord["wins"] / (arcaneRecord["wins"] + arcaneRecord["losses"]) * 100).toFixed(2), +(natureRecord["wins"] / (natureRecord["wins"] + natureRecord["losses"]) * 100).toFixed(2), +(techRecord["wins"] / (techRecord["wins"] + techRecord["losses"]) * 100).toFixed(2)],
+				data: [+(winRecord["wonGames"].length / (winRecord["wonGames"].length + winRecord["lostGames"].length) * 100).toFixed(2), +(divineRecord["wins"] / (divineRecord["wins"] + divineRecord["losses"]) * 100).toFixed(2), +(chaosRecord["wins"] / (chaosRecord["wins"] + chaosRecord["losses"]) * 100).toFixed(2), +(arcaneRecord["wins"] / (arcaneRecord["wins"] + arcaneRecord["losses"]) * 100).toFixed(2), +(natureRecord["wins"] / (natureRecord["wins"] + natureRecord["losses"]) * 100).toFixed(2), +(techRecord["wins"] / (techRecord["wins"] + techRecord["losses"]) * 100).toFixed(2)],
 				backgroundColor: [
 					"rgba(128, 128, 128, 0.2)",
 					"rgba(255, 255, 0, 0.2)",
