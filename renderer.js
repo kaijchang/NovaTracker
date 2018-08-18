@@ -115,7 +115,7 @@ function winRateChart() {
 
 	var winRecord = winTally();
 
-	var winRate = new Chart(ctx, {
+	new Chart(ctx, {
 		type: 'pie',
 		data: {
 			labels: ["Wins", "Losses"],
@@ -180,6 +180,10 @@ function chartPage() {
 	$("a:contains(Charts)").addClass("active");
 
 	$(".container-fluid").append(`<canvas id="winRate" width="300" height="300""></canvas>`);
+
+	fs.watchFile(path.join(game_folder, log_folder, "game_log_file.json"), (curr, prev) => {
+		winRateChart();
+	});
 
 	winRateChart();
 }

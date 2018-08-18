@@ -1,0 +1,35 @@
+body {
+  background: url(./images/supernova.jpg) no-repeat rgb(30,30,30) fixed center !important;
+  background-size: cover;
+}
+
+.nav-pills > li > a.active {
+  background-color: gray !important;
+}
+
+.footer > .container {
+  padding-right: 15px;
+  padding-left: 15px;
+}
+
+body > .container {
+  padding: 60px 15px 0;
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  margin-bottom: 60px;
+}
+
+.footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 55px;
+  line-height: 55px;
+  background-color: #343a40;
+}
