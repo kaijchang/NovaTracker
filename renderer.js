@@ -64,7 +64,7 @@ function populateTable() {
 		var logs = JSON.parse(logs);
 
 		logs.reverse().forEach(game => {
-			var won = game["IsPlayerWinner"] ? "Yes" : "No";
+			var won = game["IsPlayerWinner"] ? "✓" : "✗";
 			var aspects = deckAspects(game);
 			opponentAspects = aspects["opponentAspects"].map(aspect => '<img src="images/' + aspect + '.png" height="20" width="20">');
 			playerAspects = aspects["playerAspects"].map(aspect => '<img src="images/' + aspect + '.png" height="20" width="20">');
@@ -86,21 +86,21 @@ function gamePage() {
 	$(".container-fluid").empty();
 
 	$(".active").removeClass("active");
-	$("a:contains(Games)").parent().addClass("active");
+	$("a:contains(Games)").addClass("active");
 
-	$(".container-fluid").append(`<table class="table table-dark table-striped">
-       		<thead>
-        	<tr>
-        	  <th scope="col">Type</th>
-        	  <th scope="col">Deck Aspect</th>
-        	  <th scope="col">Against</th>
-        	  <th scope="col">Time</th>
-        	  <th scope="col">Won</th>
-        	</tr>
-      		</thead>
-      		<tbody>
-      		</tbody>
-       </table>`);
+	$(".container-fluid").append(`<table class="table table-dark table-striped table-hover mt-3">
+       			<thead>
+        		<tr>
+        		  <th scope="col">Type</th>
+        		  <th scope="col">Deck Aspect</th>
+        		  <th scope="col">Against</th>
+        		  <th scope="col">Time</th>
+        		  <th scope="col">Won</th>
+        		</tr>
+      			</thead>
+      			<tbody>
+      			</tbody>
+       		</table>`);
 
 	fs.watchFile(path.join(game_folder, log_folder, "game_log_file.json"), (curr, prev) => {
 		populateTable();
@@ -113,7 +113,7 @@ function chartPage() {
 	$(".container-fluid").empty();
 
 	$(".active").removeClass("active");
-	$("a:contains(Charts)").parent().addClass("active");
+	$("a:contains(Charts)").addClass("active");
 }
 
 $("a:contains(Games)").click(gamePage);
