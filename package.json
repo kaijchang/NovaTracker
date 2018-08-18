@@ -11,7 +11,8 @@
   },
   "dependencies": {
     "bootstrap": "^4.1.3",
-    "expand-home-dir": "0.0.3"
+    "expand-home-dir": "0.0.3",
+    "open": "0.0.5"
   },
   "author": "Kai Chang",
   "license": "MIT"

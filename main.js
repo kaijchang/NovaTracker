@@ -11,6 +11,8 @@ function createWindow() {
 		height: 800
 	});
 
+	win.setResizable(false);
+
 	win.loadFile('index.html');
 
 	win.on('closed', () => {

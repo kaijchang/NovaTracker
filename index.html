@@ -12,17 +12,22 @@
 
     <script>if (window.module) module = window.module;</script>
 
-    <style> body {
+    <style> 
+    html, body {
+      height:100%;
+    }
+
+    body {
       background: url(./images/supernova.jpg) no-repeat rgb(30,30,30) fixed center !important;
       background-size: cover;
     }
     </style>
 
-    <title>NovaBlitz Game Log</title>
+    <title>NovaTracker</title>
   </head>
   <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-      <a class="navbar-brand" href="#">NovaTracker</a>
+      <a class="navbar-brand" href="#"><img src="images/novablitz.png" height="30" width="30"> NovaTracker</a>
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav mr-auto">
           <li class="nav-item active">
@@ -35,6 +40,11 @@
     </nav>
     <div class="container-fluid">
     </div>
+    <footer class="footer navbar-fixed-bottom">
+      <div class="container">
+        <span class="text-muted"><a href="https://github.com/kajchang/NovaTracker">Contribute</a> - <a href="https://novablitz.com/">Game Information</a></span>
+      </div>
+    </footer>
   </body>
   <script>
     require("./renderer.js");
