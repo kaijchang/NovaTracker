@@ -66,21 +66,30 @@ function deckAspects(game) {
 function winTally() {
 	var wins = 0;
 	var losses = 0;
+	var wonGames = [];
+	var lostGames = [];
 
 	var logs = JSON.parse(fs.readFileSync(path.join(game_folder, log_folder, "game_log_file.json")));
 
 
 	logs.forEach(game => {
+		var aspects = deckAspects(game);
 		if (game["IsPlayerWinner"]) {
-			wins++;
+			wonGames.push({
+				"playerAspects": aspects["playerAspects"],
+				"opponent": aspects["opponentAspects"],
+			});
 		} else {
-			losses++;
+			lostGames.push({
+				"playerAspects": aspects["playerAspects"],
+				"opponent": aspects["opponentAspects"],
+			});
 		}
 	});
 
 	return {
-		"wins": wins,
-		"losses": losses
+		"wonGames": wonGames,
+		"lostGames": lostGames
 	}
 }
 
@@ -111,24 +120,22 @@ function populateTable() {
 }
 
 function winRateChart() {
-	var ctx = document.getElementById("winRate").getContext('2d');
-
 	var winRecord = winTally();
 
-	new Chart(ctx, {
-		type: 'pie',
+	new Chart(document.getElementById("overallWinRate").getContext("2d"), {
+		type: "pie",
 		data: {
 			labels: ["Wins", "Losses"],
 			datasets: [{
-				label: '# of Games',
-				data: [winRecord["wins"], winRecord["losses"]],
+				label: "# of Games",
+				data: [winRecord["wonGames"].length, winRecord["lostGames"].length],
 				backgroundColor: [
-					'rgba(54, 162, 235, 0.2)',
-					'rgba(255, 99, 132, 0.2)'
+					"rgba(54, 162, 235, 0.2)",
+					"rgba(255, 99, 132, 0.2)"
 				],
 				borderColor: [
-					'rgba(54, 162, 235, 1)',
-					'rgba(255,99,132, 1)'
+					"rgba(54, 162, 235, 1)",
+					"rgba(255,99,132, 1)"
 				],
 				borderWidth: 1
 			}]
@@ -136,9 +143,53 @@ function winRateChart() {
 		options: {
 			title: {
 				display: true,
-				text: 'Winrate',
+				text: "Overall Winrate",
 				fontSize: 22
 			},
+			responsive: false,
+			maintainAspectRatio: false
+		}
+	});
+
+	var divineRecord = {"wins": winRecord["wonGames"].filter(game => game["playerAspects"].includes("D")).length, "losses": winRecord["lostGames"].filter(game => game["playerAspects"].includes("D")).length};
+	var chaosRecord = {"wins": winRecord["wonGames"].filter(game => game["playerAspects"].includes("C")).length, "losses": winRecord["lostGames"].filter(game => game["playerAspects"].includes("C")).length};
+	var arcaneRecord = {"wins": winRecord["wonGames"].filter(game => game["playerAspects"].includes("A")).length, "losses": winRecord["lostGames"].filter(game => game["playerAspects"].includes("A")).length};
+	var natureRecord = {"wins": winRecord["wonGames"].filter(game => game["playerAspects"].includes("N")).length, "losses": winRecord["lostGames"].filter(game => game["playerAspects"].includes("N")).length};
+	var techRecord = {"wins": winRecord["wonGames"].filter(game => game["playerAspects"].includes("T")).length, "losses": winRecord["lostGames"].filter(game => game["playerAspects"].includes("T")).length};
+
+	new Chart(document.getElementById("winRateByAspect").getContext("2d"), {
+		type: "horizontalBar",
+		data: {
+			labels: ["Overall", "Divine", "Chaos", "Arcane", "Nature", "Tech"],
+			datasets: [{
+				label: "% of Wins",
+				data: [+(winRecord["wonGames"].length / (winRecord["wonGames"].length + winRecord["lostGames"].length) * 100).toFixed(2), +(chaosRecord["wins"] / (chaosRecord["wins"] + chaosRecord["losses"]) * 100).toFixed(2), +(arcaneRecord["wins"] / (arcaneRecord["wins"] + arcaneRecord["losses"]) * 100).toFixed(2), +(natureRecord["wins"] / (natureRecord["wins"] + natureRecord["losses"]) * 100).toFixed(2), +(techRecord["wins"] / (techRecord["wins"] + techRecord["losses"]) * 100).toFixed(2)],
+				backgroundColor: [
+					"rgba(128, 128, 128, 0.2)",
+					"rgba(255, 255, 0, 0.2)",
+					"rgba(255, 0, 0, 0.2)",
+					"rgba(255, 0, 255, 0.2)",
+					"rgba(0, 255, 0, 0.2)",
+					"rgba(192, 192, 192, 0.2)"
+				],
+				borderColor: [
+					"rgba(128, 128, 128, 1)",
+					"rgba(255, 255, 0, 1)",
+					"rgba(255, 0, 0, 1)",
+					"rgba(255, 0, 255, 1)",
+					"rgba(0, 255, 0, 1)",
+					"rgba(192, 192, 192, 1)"
+				],
+				borderWidth: 1
+			}]
+		},
+		options: {
+			title: {
+				display: true,
+				text: "Winrate By Aspect",
+				fontSize: 22
+			},
+			responsive: false,
 			maintainAspectRatio: false
 		}
 	});
@@ -179,7 +230,8 @@ function chartPage() {
 	$(".active").removeClass("active");
 	$("a:contains(Charts)").addClass("active");
 
-	$(".container-fluid").append(`<canvas id="winRate" width="300" height="300""></canvas>`);
+	$(".container-fluid").append(`<canvas id="overallWinRate" width="250" height="250""></canvas>
+								  <canvas id="winRateByAspect" width="250" height="250""></canvas>`);
 
 	fs.watchFile(path.join(game_folder, log_folder, "game_log_file.json"), (curr, prev) => {
 		winRateChart();
