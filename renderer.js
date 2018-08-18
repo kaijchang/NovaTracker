@@ -39,9 +39,9 @@ function deckAspects(game) {
 		if (move["EventType"] == "ResolveEvent") {
 			cards.forEach(card => {
 				if (card["CardId"] == move["SourceCardId"]) {
-					if (move["SourceControllerId"] == playerId && !playerAspects.includes(card["Aspect"]) && card["Subtype"] != "Curse") {
+					if (move["SourceControllerId"] == playerId && !playerAspects.includes(card["Aspect"]) && card["Subtype"] != "Curse" && card["Name"] != "Bomb" && card["Name"] != "Cyclops") {
 						playerAspects.push(card["Aspect"]);
-					} else if (move["SourceControllerId"] == opponentId && !opponentAspects.includes(card["Aspect"]) && card["Subtype"] != "Curse") {
+					} else if (move["SourceControllerId"] == opponentId && !opponentAspects.includes(card["Aspect"]) && card["Subtype"] != "Curse" && card["Name"] != "Bomb" && card["Name"] != "Cyclops") {
 						opponentAspects.push(card["Aspect"]);
 					}
 				}
