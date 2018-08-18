@@ -2,6 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const expandHomeDir = require("expand-home-dir");
 const open = require("open");
+const homedir = require('os').homedir();
 
 let game_folder;
 let log_folder;
@@ -13,7 +14,7 @@ let card_file;
 if (process.platform == "darwin") {
 	game_folder = expandHomeDir("~/Library/Application Support/com.dragonfoundry.novablitz");
 } else if (process.platform === "win32") {
-	// windows game files location
+	game_folder = path.join(homedir, "AppData\\LocalLow\\Dragon Foundry\\NovaBlitz");
 }
 
 fs.readdirSync(game_folder).forEach(file => {
