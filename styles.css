@@ -33,3 +33,6 @@ body {
   line-height: 55px;
   background-color: #343a40;
 }
+img.disabled {
+    opacity:0.5;
+}

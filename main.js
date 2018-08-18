@@ -8,7 +8,8 @@ let win;
 function createWindow() {
 	win = new BrowserWindow({
 		width: 1000,
-		height: 800
+		height: 800,
+		frame: false
 	});
 
 	win.setResizable(false);
