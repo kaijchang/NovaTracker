@@ -17,7 +17,7 @@ $ npm start
 
 # TODO
 
-- Log games into a database
+- Export to web
 
 - Show more game details (play by play)
 
