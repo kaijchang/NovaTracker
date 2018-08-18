@@ -7,6 +7,9 @@ let game_folder;
 let log_folder;
 let card_file;
 
+
+// Finding file locations
+
 if (process.platform == "darwin") {
 	game_folder = expandHomeDir("~/Library/Application Support/com.dragonfoundry.novablitz");
 } else if (process.platform === "win32") {
@@ -20,6 +23,8 @@ fs.readdirSync(game_folder).forEach(file => {
 		card_file = file;
 	}
 });
+
+// Processors
 
 function deckAspects(game) {
 	var playerAspects = [];
@@ -58,6 +63,29 @@ function deckAspects(game) {
 	}
 }
 
+function winTally() {
+	var wins = 0;
+	var losses = 0;
+
+	var logs = JSON.parse(fs.readFileSync(path.join(game_folder, log_folder, "game_log_file.json")));
+
+
+	logs.forEach(game => {
+		if (game["IsPlayerWinner"]) {
+			wins++;
+		} else {
+			losses++;
+		}
+	});
+
+	return {
+		"wins": wins,
+		"losses": losses
+	}
+}
+
+// Element generators
+
 function populateTable() {
 	$("tbody").empty();
 	fs.readFile(path.join(game_folder, log_folder, "game_log_file.json"), (err, logs) => {
@@ -81,6 +109,42 @@ function populateTable() {
 		$("time.timeago").timeago();
 	});
 }
+
+function winRateChart() {
+	var ctx = document.getElementById("winRate").getContext('2d');
+
+	var winRecord = winTally();
+
+	var winRate = new Chart(ctx, {
+		type: 'pie',
+		data: {
+			labels: ["Wins", "Losses"],
+			datasets: [{
+				label: '# of Games',
+				data: [winRecord["wins"], winRecord["losses"]],
+				backgroundColor: [
+					'rgba(54, 162, 235, 0.2)',
+					'rgba(255, 99, 132, 0.2)'
+				],
+				borderColor: [
+					'rgba(54, 162, 235, 1)',
+					'rgba(255,99,132, 1)'
+				],
+				borderWidth: 1
+			}]
+		},
+		options: {
+			title: {
+				display: true,
+				text: 'Winrate',
+				fontSize: 22
+			},
+			maintainAspectRatio: false
+		}
+	});
+}
+
+// Page changers
 
 function gamePage() {
 	$(".container-fluid").empty();
@@ -114,7 +178,14 @@ function chartPage() {
 
 	$(".active").removeClass("active");
 	$("a:contains(Charts)").addClass("active");
+
+	$(".container-fluid").append(`<canvas id="winRate" width="300" height="300""></canvas>`);
+
+	winRateChart();
 }
+
+
+// Listeners
 
 $("a:contains(Games)").click(gamePage);
 $("a:contains(Charts)").click(chartPage);
@@ -125,5 +196,7 @@ $("a[href!='#']").click(function(e) {
 
 	open($(this).attr("href"));
 });
+
+// Switch to Game Page
 
 gamePage();
