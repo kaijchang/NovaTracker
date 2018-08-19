@@ -4,15 +4,30 @@
   "description": "View NovaBlitz Logs",
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder",
+    "dist-all": "electron-builder -mw"
+  },
+  "build": {
+    "appId": "com.electron.novatracker",
+    "asar": true,
+    "productName": "NovaTracker",
+    "copyright": "Copyright © 2018 Kai Chang",
+    "mac": {
+      "category": "public.app-category.productivity"
+    }
   },
   "devDependencies": {
-    "electron": "^2.0.7"
+    "electron": "^2.0.7",
+    "electron-builder": "^20.28.1"
   },
   "dependencies": {
     "bootstrap": "^4.1.3",
+    "jquery": "^3.3.1",
     "moment": "^2.22.2",
-    "open": "0.0.5"
+    "open": "0.0.5",
+    "popper.js": "^1.14.4"
   },
   "author": "Kai Chang",
   "license": "MIT"
