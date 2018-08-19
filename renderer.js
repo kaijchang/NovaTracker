@@ -72,7 +72,7 @@ function populateTable() {
         var logs = JSON.parse(logs);
         logs.reverse().forEach(game => {
             var aspects = deckAspects(game);
-            if (!$("img.disabled").toArray().map(image => /[ACDTNU]/.exec($(image).attr("src"))[0]).some(aspect => aspects["playerAspects"].concat(aspects["opponentAspects"]).includes(aspect))) {
+            if (!$("img.disabled.playerFilter").toArray().map(image => /[ACDTNU]/.exec($(image).attr("src"))[0]).some(aspect => aspects["playerAspects"].includes(aspect)) && !$("img.disabled.opponentFilter").toArray().map(image => /[ACDTNU]/.exec($(image).attr("src"))[0]).some(aspect => aspects["opponentAspects"].includes(aspect)) && $("option:selected").attr("value").split(",").includes(game["Format"])) {
                 var won = game["IsPlayerWinner"] ? "✓" : "✗";
 
                 opponentAspects = aspects["opponentAspects"].map(aspect => '<img src="images/' + aspect + '.png" height="20" width="20">');
@@ -104,12 +104,12 @@ function populateStats() {
             if (game["IsPlayerWinner"]) {
                 wonGames.push({
                     "playerAspects": aspects["playerAspects"],
-                    "opponent": aspects["opponentAspects"],
+                    "opponentAspects": aspects["opponentAspects"],
                 });
             } else {
                 lostGames.push({
                     "playerAspects": aspects["playerAspects"],
-                    "opponent": aspects["opponentAspects"],
+                    "opponentAspects": aspects["opponentAspects"],
                 });
             }
         });
@@ -232,7 +232,14 @@ function gamePage() {
     $(".active").removeClass("active");
     $("a:contains(Games)").addClass("active");
 
-    $(".container-fluid").append('<div class="bg-secondary border border-dark mt-2 mb-1" id="filters"><img class="ml-2 mt-2 mb-2" src="images/A.png" height="25" width="25"><img class="mt-2 mb-2" src="images/C.png" height="25" width="25"><img class="mt-2 mb-2" src="images/D.png" height="25" width="25"><img class="mt-2 mb-2" src="images/T.png" height="25" width="25"><img class="mt-2 mb-2" src="images/N.png" height="25" width="25"><img class="mt-2 mb-2" src="images/U.png" height="25" width="25"></div>');
+    $(".container-fluid").append(`<div class="mt-2 mb-1">
+                                    <select class="custom-select float-left mb-1 bg-dark text-white" style="width: 8rem;">
+                                      <option value="Casual,Draft" selected>All Modes</option>
+                                      <option value="Casual">Casual</option>
+                                      <option value="Draft">Draft</option>
+                                    </select>
+                                    <img class="ml-3 mt-2 mb-2 playerFilter" src="images/A.png" height="25" width="25"><img class="mt-2 mb-2 playerFilter" src="images/C.png" height="25" width="25"><img class="mt-2 mb-2 playerFilter" src="images/D.png" height="25" width="25"><img class="mt-2 mb-2 playerFilter" src="images/T.png" height="25" width="25"><img class="mt-2 mb-2 playerFilter" src="images/N.png" height="25" width="25"><img class="mt-2 mb-2 mr-5 playerFilter" src="images/U.png" height="25" width="25"><img class="ml-4 mt-2 mb-2 opponentFilter" src="images/A.png" height="25" width="25"><img class="mt-2 mb-2 opponentFilter" src="images/C.png" height="25" width="25"><img class="mt-2 mb-2 opponentFilter" src="images/D.png" height="25" width="25"><img class="mt-2 mb-2 opponentFilter" src="images/T.png" height="25" width="25"><img class="mt-2 mb-2 opponentFilter" src="images/N.png" height="25" width="25"><img class="mt-2 mb-2 opponentFilter" src="images/U.png" height="25" width="25">
+                                 </div>`);
 
     $(".container-fluid").append(`<table class="table table-dark table-striped table-hover">
                 <thead>
@@ -254,13 +261,17 @@ function gamePage() {
 
     populateTable();
 
-    $("#filters").find("img").click(function(e) {
+    $(".playerFilter, .opponentFilter").click(function(e) {
         if ($(this).hasClass("disabled")) {
             $(this).removeClass("disabled");
         } else {
             $(this).addClass("disabled");
         }
 
+        populateTable();
+    });
+
+    $("select").change(function(e) {
         populateTable();
     });
 }
