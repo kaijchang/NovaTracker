@@ -43,9 +43,9 @@ function deckAspects(game) {
         if (move["EventType"] == "ResolveEvent") {
             cards.forEach(card => {
                 if (card["CardId"] == move["SourceCardId"]) {
-                    if (move["SourceControllerId"] == playerId && !playerAspects.includes(card["Aspect"]) && card["Subtype"] != "Curse" && card["Name"] != "Bomb" && card["Name"] != "Cyclops") {
+                    if (move["SourceControllerId"] == playerId && !playerAspects.includes(card["Aspect"]) && card["Subtype"] != "Curse" && card["Name"] != "Bomb!" && card["Name"] != "Cyclops") {
                         playerAspects.push(card["Aspect"]);
-                    } else if (move["SourceControllerId"] == opponentId && !opponentAspects.includes(card["Aspect"]) && card["Subtype"] != "Curse" && card["Name"] != "Bomb" && card["Name"] != "Cyclops") {
+                    } else if (move["SourceControllerId"] == opponentId && !opponentAspects.includes(card["Aspect"]) && card["Subtype"] != "Curse" && card["Name"] != "Bomb!" && card["Name"] != "Cyclops") {
                         opponentAspects.push(card["Aspect"]);
                     }
                 }
@@ -194,7 +194,7 @@ function updateStats() {
 
         var topCards = {};
 
-        while (Object.keys(topCards).length < 10) {
+        while (Object.keys(topCards).length < 10 && mode[0][0] !== undefined) {
             var max = Math.max(...mode[1]);
             topCards[mode[0][mode[1].indexOf(max)]] = max;
             mode[0].splice(mode[1].indexOf(max), 1);
