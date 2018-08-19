@@ -8,6 +8,9 @@ let game_folder;
 let log_folder;
 let card_file;
 
+let overallWinRate;
+let winRateByAspect;
+
 
 // Finding file locations
 
@@ -64,16 +67,44 @@ function deckAspects(game) {
     }
 }
 
+function winTally() {
+    var wonGames = [];
+    var lostGames = [];
+
+    var logs = JSON.parse(fs.readFileSync(path.join(game_folder, log_folder, "game_log_file.json")));
+
+    logs.forEach(game => {
+        var aspects = deckAspects(game);
+        if (game["IsPlayerWinner"]) {
+            wonGames.push({
+                "playerAspects": aspects["playerAspects"],
+                "opponentAspects": aspects["opponentAspects"],
+            });
+        } else {
+            lostGames.push({
+                "playerAspects": aspects["playerAspects"],
+                "opponentAspects": aspects["opponentAspects"],
+            });
+        }
+    });
+
+    return {
+        "wonGames": wonGames,
+        "lostGames": lostGames
+    }
+}
+
 
 // Element generators
 
 function populateTable() {
     $("tbody").empty();
+
     fs.readFile(path.join(game_folder, log_folder, "game_log_file.json"), (err, logs) => {
         var logs = JSON.parse(logs);
         logs.reverse().forEach(game => {
             var aspects = deckAspects(game);
-            if (!$("img.disabled.playerFilter").toArray().map(image => /[ACDTNU]/.exec($(image).attr("src"))[0]).some(aspect => aspects["playerAspects"].includes(aspect)) && !$("img.disabled.opponentFilter").toArray().map(image => /[ACDTNU]/.exec($(image).attr("src"))[0]).some(aspect => aspects["opponentAspects"].includes(aspect)) && $("#formatFilter").find("option:selected").attr("value").split(",").includes(game["Format"]) && moment(game["LogElements"][game["LogElements"].length - 1]["LogTime"]) > moment().subtract('days', parseInt($("#timeFilter").find("option:selected").attr("value")))) {
+            if (!$("img.disabled.playerFilter").toArray().map(image => /[ACDTNU]/.exec($(image).attr("src"))[0]).some(aspect => aspects["playerAspects"].includes(aspect)) && !$("img.disabled.opponentFilter").toArray().map(image => /[ACDTNU]/.exec($(image).attr("src"))[0]).some(aspect => aspects["opponentAspects"].includes(aspect)) && $("#formatFilter").find("option:selected").attr("value").split(",").includes(game["Format"]) && moment(game["LogElements"][game["LogElements"].length - 1]["LogTime"]) > moment().subtract(parseInt($("#timeFilter").find("option:selected").attr("value")), "days")) {
                 var won = game["IsPlayerWinner"] ? "✓" : "✗";
 
                 opponentAspects = aspects["opponentAspects"].map(aspect => '<img src="images/' + aspect + '.png" height="20" width="20">');
@@ -85,7 +116,7 @@ function populateTable() {
                         <td>` + opponentAspects.join("") + " " + game["OpponentPlayerData"]["displayName"] + `</td>
                         <td><time class="timeago" datetime="` + game["LogElements"][game["LogElements"].length - 1]["LogTime"] + `">` + game["StartTime"] + `</time>
                         <td>` + won + `</td>
-                    </tr>`).hide().appendTo("tbody").show('normal');
+                    </tr>`).hide().appendTo("tbody").show("normal");
             }
         });
 
@@ -93,56 +124,20 @@ function populateTable() {
     });
 }
 
-function populateStats() {
-    var wonGames = [];
-    var lostGames = [];
+function updateStats() {
+    $(".list-group").empty();
+    $("tbody").empty();
 
     fs.readFile(path.join(game_folder, log_folder, "game_log_file.json"), (err, logs) => {
         var logs = JSON.parse(logs);
 
-        logs.forEach(game => {
-            var aspects = deckAspects(game);
-            if (game["IsPlayerWinner"]) {
-                wonGames.push({
-                    "playerAspects": aspects["playerAspects"],
-                    "opponentAspects": aspects["opponentAspects"],
-                });
-            } else {
-                lostGames.push({
-                    "playerAspects": aspects["playerAspects"],
-                    "opponentAspects": aspects["opponentAspects"],
-                });
-            }
-        });
+        var gameRecords = winTally();
 
-        new Chart(document.getElementById("overallWinRate").getContext("2d"), {
-            type: "pie",
-            data: {
-                labels: ["Wins", "Losses"],
-                datasets: [{
-                    label: "# of Games",
-                    data: [wonGames.length, lostGames.length],
-                    backgroundColor: [
-                        "rgba(54, 162, 235, 0.2)",
-                        "rgba(255, 99, 132, 0.2)"
-                    ],
-                    borderColor: [
-                        "rgba(54, 162, 235, 1)",
-                        "rgba(255,99,132, 1)"
-                    ],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                title: {
-                    display: true,
-                    text: "Overall Winrate",
-                    fontSize: 22
-                },
-                responsive: false,
-                maintainAspectRatio: false
-            }
-        });
+        var wonGames = gameRecords["wonGames"];
+        var lostGames = gameRecords["lostGames"];
+
+        overallWinRate.data.datasets[0].data = [wonGames.length, lostGames.length];
+        overallWinRate.update();
 
         var divineRecord = {
             "wins": wonGames.filter(game => game["playerAspects"].includes("D")).length,
@@ -165,69 +160,67 @@ function populateStats() {
             "losses": lostGames.filter(game => game["playerAspects"].includes("T")).length
         };
 
-        new Chart(document.getElementById("winRateByAspect").getContext("2d"), {
-            type: "horizontalBar",
-            data: {
-                labels: ["Overall", "Divine", "Chaos", "Arcane", "Nature", "Tech"],
-                datasets: [{
-                    label: "% of Wins",
-                    data: [+(wonGames.length / (wonGames.length + lostGames.length) * 100).toFixed(2), +(divineRecord["wins"] / (divineRecord["wins"] + divineRecord["losses"]) * 100).toFixed(2), +(chaosRecord["wins"] / (chaosRecord["wins"] + chaosRecord["losses"]) * 100).toFixed(2), +(arcaneRecord["wins"] / (arcaneRecord["wins"] + arcaneRecord["losses"]) * 100).toFixed(2), +(natureRecord["wins"] / (natureRecord["wins"] + natureRecord["losses"]) * 100).toFixed(2), +(techRecord["wins"] / (techRecord["wins"] + techRecord["losses"]) * 100).toFixed(2)],
-                    backgroundColor: [
-                        "rgba(128, 128, 128, 0.2)",
-                        "rgba(255, 255, 0, 0.2)",
-                        "rgba(255, 0, 0, 0.2)",
-                        "rgba(255, 0, 255, 0.2)",
-                        "rgba(0, 255, 0, 0.2)",
-                        "rgba(192, 192, 192, 0.2)"
-                    ],
-                    borderColor: [
-                        "rgba(128, 128, 128, 1)",
-                        "rgba(255, 255, 0, 1)",
-                        "rgba(255, 0, 0, 1)",
-                        "rgba(255, 0, 255, 1)",
-                        "rgba(0, 255, 0, 1)",
-                        "rgba(192, 192, 192, 1)"
-                    ],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                title: {
-                    display: true,
-                    text: "Winrate By Aspect",
-                    fontSize: 22
-                },
-                responsive: false,
-                maintainAspectRatio: false
-            }
-        });
+        winRateByAspect.data.datasets[0].data = [+(wonGames.length / (wonGames.length + lostGames.length) * 100).toFixed(2), +(divineRecord["wins"] / (divineRecord["wins"] + divineRecord["losses"]) * 100).toFixed(2), +(chaosRecord["wins"] / (chaosRecord["wins"] + chaosRecord["losses"]) * 100).toFixed(2), +(arcaneRecord["wins"] / (arcaneRecord["wins"] + arcaneRecord["losses"]) * 100).toFixed(2), +(natureRecord["wins"] / (natureRecord["wins"] + natureRecord["losses"]) * 100).toFixed(2), +(techRecord["wins"] / (techRecord["wins"] + techRecord["losses"]) * 100).toFixed(2)];
+        winRateByAspect.update();
 
         var gameLengths = logs.map(game => game["LogElements"][game["LogElements"].length - 1]["Turn"]);
         var averageLength = gameLengths.reduce(function(sum, a) {
             return sum + Number(a)
         }, 0) / gameLengths.length;
 
-        $(".list-group").append(`<li class="list-group-item bg-dark">~` + averageLength.toFixed(2) + ` Turns per Game</li>`);
+        $('<li class="list-group-item bg-dark">~' + averageLength.toFixed(2) + ' Turns per Game</li>').hide().appendTo(".list-group").show("normal");
 
         var gameLengths = logs.map(game => moment.duration(moment(game["LogElements"][game["LogElements"].length - 1]["LogTime"]).diff(moment(game["StartTime"]))).asMinutes());
         var averageLength = gameLengths.reduce(function(sum, a) {
             return sum + Number(a)
         }, 0) / gameLengths.length;
 
-        $(".list-group").append(`<li class="list-group-item bg-dark">~` + averageLength.toFixed(2) + ` Minutes per Game</li>`);
+        $('<li class="list-group-item bg-dark">~' + averageLength.toFixed(2) + ' Minutes per Game</li>').hide().appendTo(".list-group").show("normal");
 
-        var cardsPerGame = logs.map(game => game["LogElements"].filter(move => move["EventType"] == "ResolveEvent").length);
-        var averageCardsPerGame = cardsPerGame.reduce(function(sum, a) {
-            return sum + Number(a)
-        }, 0) / cardsPerGame.length;
+        // below is super inefficient way to get top ten most played cards
 
-        $(".list-group").append(`<li class="list-group-item bg-dark">~` + averageCardsPerGame.toFixed(2) + ` Cards Played per Game</li>`);
+        var playedCards = logs.reduce((cards, game) => {
+            return cards.concat(game["LogElements"].filter(move => move["EventType"] == "ResolveEvent").map(move => move["SourceCardId"]));
+        }, []);
+
+        var cards = JSON.parse(fs.readFileSync(path.join(game_folder, card_file)))["Cards"];
+
+        var cardIds = cards.map(card => card["CardId"])
+        var playedCards = playedCards.map(playedCard => cards[cardIds.indexOf(playedCard)]["Name"]);
+
+        var mode = playedCards.reduce((mode, card) => {
+            if (mode[0].includes(card)) {mode[1][mode[0].indexOf(card)]++;} else {mode[0].push(card); mode[1].push(1)}; return mode;
+        }, [[], []]);
+
+        var topCards = {};
+
+        while (Object.keys(topCards).length < 10) {
+            var max = Math.max(...mode[1]);
+            topCards[mode[0][mode[1].indexOf(max)]] = max;
+            mode[0].splice(mode[1].indexOf(max), 1);
+            mode[1].splice(mode[1].indexOf(max), 1);
+        }
+
+        Object.keys(topCards).forEach(card => {
+            $(`<tr>
+                   <td>` + (Object.keys(topCards).indexOf(card) + 1) + `</td>
+                   <td>
+                       <div class="progress">
+                           <div class="progress-bar" role="progressbar" aria-valuenow="` + topCards[card] + `" aria-valuemin="0" aria-valuemax="` + Math.max(...Object.values(topCards)) + `" style="width: ` + Math.round(topCards[card] / Math.max(...Object.values(topCards)) * 100) + `%"></div>
+                       </div>
+                   </td>
+                   <td>` + card + `</td>
+                   <td>` + topCards[card] + `</td>
+               </tr>`).hide().appendTo("tbody").show("normal");
+        });
     });
 }
 
 // Page changers
 
 function gamePage() {
+    fs.unwatchFile(path.join(game_folder, log_folder, "game_log_file.json"));
+
     $(".container-fluid").empty();
 
     $(".active").removeClass("active");
@@ -237,7 +230,7 @@ function gamePage() {
                 <thead>
                     <tr>
                         <th scope="col">                                    
-                            <select class="custom-select float-left mb-1 bg-dark text-white" style="width: 8rem;" id="formatFilter">
+                            <select class="custom-select mb-1 bg-dark text-white" style="width: 8rem;" id="formatFilter">
                                 <option value="Casual,Draft" selected>All Modes</option>
                                 <option value="Casual">Casual</option>
                                 <option value="Draft">Draft</option>
@@ -273,9 +266,7 @@ function gamePage() {
                 </tbody>
             </table>`);
 
-    fs.watchFile(path.join(game_folder, log_folder, "game_log_file.json"), (curr, prev) => {
-        populateTable();
-    });
+    fs.watchFile(path.join(game_folder, log_folder, "game_log_file.json"), populateTable);
 
     populateTable();
 
@@ -294,13 +285,27 @@ function gamePage() {
     });
 }
 
-function chartPage() {
+function statsPage() {
+    fs.unwatchFile(path.join(game_folder, log_folder, "game_log_file.json"));
+
     $(".container-fluid").empty();
 
     $(".active").removeClass("active");
-    $("a:contains(Charts)").addClass("active");
+    $("a:contains(Stats)").addClass("active");
 
-    $(".container-fluid").append(`<div class="card mt-3 bg-dark float-right text-white" style="width: 18rem;">
+    $(".container-fluid").append(`<table class="table table-dark table-striped table-hover float-right" style="width: 40rem;">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Rank</th>
+                                            <th>Name</th>
+                                            <th>Plays</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    </tbody>
+                                  </table>
+                                  <div class="card mt-3 bg-dark text-white" style="width: 18rem;">
                                       <div class="card-header">
                                         Quick Stats
                                       </div>
@@ -310,18 +315,109 @@ function chartPage() {
                                   <canvas id="overallWinRate" width="250" height="250""></canvas>
                                   <canvas id="winRateByAspect" width="250" height="250""></canvas>`);
 
-    fs.watchFile(path.join(game_folder, log_folder, "game_log_file.json"), (curr, prev) => {
-        populateStats();
+    var gameRecords = winTally();
+
+    var wonGames = gameRecords["wonGames"];
+    var lostGames = gameRecords["lostGames"];
+
+
+    overallWinRate = new Chart(document.getElementById("overallWinRate").getContext("2d"), {
+        type: "pie",
+        data: {
+            labels: ["Wins", "Losses"],
+            datasets: [{
+                label: "# of Games",
+                data: [wonGames.length, lostGames.length],
+                backgroundColor: [
+                    "rgba(54, 162, 235, 0.2)",
+                    "rgba(255, 99, 132, 0.2)"
+                ],
+                borderColor: [
+                    "rgba(54, 162, 235, 1)",
+                    "rgba(255,99,132, 1)"
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            title: {
+                display: true,
+                text: "Overall Winrate",
+                fontSize: 18
+            },
+            responsive: false,
+            maintainAspectRatio: false
+        }
     });
 
-    populateStats();
+    var divineRecord = {
+        "wins": wonGames.filter(game => game["playerAspects"].includes("D")).length,
+        "losses": lostGames.filter(game => game["playerAspects"].includes("D")).length
+    };
+    var chaosRecord = {
+        "wins": wonGames.filter(game => game["playerAspects"].includes("C")).length,
+        "losses": lostGames.filter(game => game["playerAspects"].includes("C")).length
+    };
+    var arcaneRecord = {
+        "wins": wonGames.filter(game => game["playerAspects"].includes("A")).length,
+        "losses": lostGames.filter(game => game["playerAspects"].includes("A")).length
+    };
+    var natureRecord = {
+        "wins": wonGames.filter(game => game["playerAspects"].includes("N")).length,
+        "losses": lostGames.filter(game => game["playerAspects"].includes("N")).length
+    };
+    var techRecord = {
+        "wins": wonGames.filter(game => game["playerAspects"].includes("T")).length,
+        "losses": lostGames.filter(game => game["playerAspects"].includes("T")).length
+    };
+
+    winRateByAspect = new Chart(document.getElementById("winRateByAspect").getContext("2d"), {
+        type: "horizontalBar",
+        data: {
+            labels: ["Overall", "Divine", "Chaos", "Arcane", "Nature", "Tech"],
+            datasets: [{
+                label: "% of Wins",
+                data: [+(wonGames.length / (wonGames.length + lostGames.length) * 100).toFixed(2), +(divineRecord["wins"] / (divineRecord["wins"] + divineRecord["losses"]) * 100).toFixed(2), +(chaosRecord["wins"] / (chaosRecord["wins"] + chaosRecord["losses"]) * 100).toFixed(2), +(arcaneRecord["wins"] / (arcaneRecord["wins"] + arcaneRecord["losses"]) * 100).toFixed(2), +(natureRecord["wins"] / (natureRecord["wins"] + natureRecord["losses"]) * 100).toFixed(2), +(techRecord["wins"] / (techRecord["wins"] + techRecord["losses"]) * 100).toFixed(2)],
+                backgroundColor: [
+                    "rgba(128, 128, 128, 0.2)",
+                    "rgba(255, 255, 0, 0.2)",
+                    "rgba(255, 0, 0, 0.2)",
+                    "rgba(255, 0, 255, 0.2)",
+                    "rgba(0, 255, 0, 0.2)",
+                    "rgba(192, 192, 192, 0.2)"
+                ],
+                borderColor: [
+                    "rgba(128, 128, 128, 1)",
+                    "rgba(255, 255, 0, 1)",
+                    "rgba(255, 0, 0, 1)",
+                    "rgba(255, 0, 255, 1)",
+                    "rgba(0, 255, 0, 1)",
+                    "rgba(192, 192, 192, 1)"
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            title: {
+                display: true,
+                text: "Winrate By Aspect",
+                fontSize: 18
+            },
+            responsive: false,
+            maintainAspectRatio: false
+        }
+    });
+
+    fs.watchFile(path.join(game_folder, log_folder, "game_log_file.json"), updateStats);
+
+    updateStats();
 }
 
 
 // Listeners
 
 $("a:contains(Games)").click(gamePage);
-$("a:contains(Charts)").click(chartPage);
+$("a:contains(Stats)").click(statsPage);
 
 
 $("a[href!='#']").click(function(e) {

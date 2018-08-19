@@ -23,6 +23,7 @@ html {
 
 body {
   margin-bottom: 60px;
+  -webkit-app-region: drag;
 }
 
 .footer {
@@ -44,4 +45,18 @@ img.disabled {
 
 select {
   background: #343a40;
+}
+
+.progress {
+    background-color: transparent;
+    box-shadow: none;
+    -webkit-box-shadow: none;
+}
+
+table .progress {
+    margin-bottom: 0;
+}
+
+.progress-bar {
+    border-radius: 4px;
 }
