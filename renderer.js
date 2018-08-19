@@ -1,7 +1,8 @@
 const fs = require("fs");
 const path = require("path");
 const open = require("open");
-const homedir = require('os').homedir();
+const homedir = require("os").homedir();
+const moment = require("moment");
 
 let game_folder;
 let log_folder;
@@ -72,7 +73,7 @@ function populateTable() {
         var logs = JSON.parse(logs);
         logs.reverse().forEach(game => {
             var aspects = deckAspects(game);
-            if (!$("img.disabled.playerFilter").toArray().map(image => /[ACDTNU]/.exec($(image).attr("src"))[0]).some(aspect => aspects["playerAspects"].includes(aspect)) && !$("img.disabled.opponentFilter").toArray().map(image => /[ACDTNU]/.exec($(image).attr("src"))[0]).some(aspect => aspects["opponentAspects"].includes(aspect)) && $("option:selected").attr("value").split(",").includes(game["Format"])) {
+            if (!$("img.disabled.playerFilter").toArray().map(image => /[ACDTNU]/.exec($(image).attr("src"))[0]).some(aspect => aspects["playerAspects"].includes(aspect)) && !$("img.disabled.opponentFilter").toArray().map(image => /[ACDTNU]/.exec($(image).attr("src"))[0]).some(aspect => aspects["opponentAspects"].includes(aspect)) && $("#formatFilter").find("option:selected").attr("value").split(",").includes(game["Format"]) && moment(game["LogElements"][game["LogElements"].length - 1]["LogTime"]) > moment().subtract('days', parseInt($("#timeFilter").find("option:selected").attr("value")))) {
                 var won = game["IsPlayerWinner"] ? "✓" : "✗";
 
                 opponentAspects = aspects["opponentAspects"].map(aspect => '<img src="images/' + aspect + '.png" height="20" width="20">');
@@ -208,7 +209,7 @@ function populateStats() {
 
         $(".list-group").append(`<li class="list-group-item bg-dark">~` + averageLength.toFixed(2) + ` Turns per Game</li>`);
 
-        var gameLengths = logs.map(game => ((new Date(game["LogElements"][game["LogElements"].length - 1]["LogTime"]) - new Date(game["StartTime"])) / 1000) / 60);
+        var gameLengths = logs.map(game => moment.duration(moment(game["LogElements"][game["LogElements"].length - 1]["LogTime"]).diff(moment(game["StartTime"]))).asMinutes());
         var averageLength = gameLengths.reduce(function(sum, a) {
             return sum + Number(a)
         }, 0) / gameLengths.length;
@@ -232,24 +233,41 @@ function gamePage() {
     $(".active").removeClass("active");
     $("a:contains(Games)").addClass("active");
 
-    $(".container-fluid").append(`<div class="mt-2 mb-1">
-                                    <select class="custom-select float-left mb-1 bg-dark text-white" style="width: 8rem;">
-                                      <option value="Casual,Draft" selected>All Modes</option>
-                                      <option value="Casual">Casual</option>
-                                      <option value="Draft">Draft</option>
-                                    </select>
-                                    <img class="ml-3 mt-2 mb-2 playerFilter" src="images/A.png" height="25" width="25"><img class="mt-2 mb-2 playerFilter" src="images/C.png" height="25" width="25"><img class="mt-2 mb-2 playerFilter" src="images/D.png" height="25" width="25"><img class="mt-2 mb-2 playerFilter" src="images/T.png" height="25" width="25"><img class="mt-2 mb-2 playerFilter" src="images/N.png" height="25" width="25"><img class="mt-2 mb-2 mr-5 playerFilter" src="images/U.png" height="25" width="25"><img class="ml-4 mt-2 mb-2 opponentFilter" src="images/A.png" height="25" width="25"><img class="mt-2 mb-2 opponentFilter" src="images/C.png" height="25" width="25"><img class="mt-2 mb-2 opponentFilter" src="images/D.png" height="25" width="25"><img class="mt-2 mb-2 opponentFilter" src="images/T.png" height="25" width="25"><img class="mt-2 mb-2 opponentFilter" src="images/N.png" height="25" width="25"><img class="mt-2 mb-2 opponentFilter" src="images/U.png" height="25" width="25">
-                                 </div>`);
-
     $(".container-fluid").append(`<table class="table table-dark table-striped table-hover">
                 <thead>
-                <tr>
-                  <th scope="col">Type</th>
-                  <th scope="col">Deck Aspect</th>
-                  <th scope="col">Against</th>
-                  <th scope="col">Time</th>
-                  <th scope="col">Won</th>
-                </tr>
+                    <tr>
+                        <th scope="col">                                    
+                            <select class="custom-select float-left mb-1 bg-dark text-white" style="width: 8rem;" id="formatFilter">
+                                <option value="Casual,Draft" selected>All Modes</option>
+                                <option value="Casual">Casual</option>
+                                <option value="Draft">Draft</option>
+                            </select>
+                        </th>
+                        <th scope="col">
+                            <img class=" mt-2 mb-2 playerFilter" src="images/A.png" height="25" width="25"><img class="mt-2 mb-2 playerFilter" src="images/C.png" height="25" width="25"><img class="mt-2 mb-2 playerFilter" src="images/D.png" height="25" width="25"><img class="mt-2 mb-2 playerFilter" src="images/T.png" height="25" width="25"><img class="mt-2 mb-2 playerFilter" src="images/N.png" height="25" width="25"><img class="mt-2 mb-2 playerFilter" src="images/U.png" height="25" width="25">
+                        </th>
+                        <th scope="col">
+                            <img class="mt-2 mb-2 opponentFilter" src="images/A.png" height="25" width="25"><img class="mt-2 mb-2 opponentFilter" src="images/C.png" height="25" width="25"><img class="mt-2 mb-2 opponentFilter" src="images/D.png" height="25" width="25"><img class="mt-2 mb-2 opponentFilter" src="images/T.png" height="25" width="25"><img class="mt-2 mb-2 opponentFilter" src="images/N.png" height="25" width="25"><img class="mt-2 mb-2 opponentFilter" src="images/U.png" height="25" width="25">
+                        </th>
+                        <th scope="col">
+                            <select class="custom-select bg-dark text-white mb-1" style="width: 8rem;" id="timeFilter">
+                              <option value="730000" selected>All Time</option>
+                              <option value="1">Past Day</option>
+                              <option value="7">Past Week</option>
+                              <option value="31">Past Month</option>
+                              <option value="365">Past Year</option>
+                            </select>
+                        </th>
+                        <th scope="col">
+                        </th>
+                    </tr>
+                    <tr>
+                      <th scope="col">Type</th>
+                      <th scope="col">Deck Aspect</th>
+                      <th scope="col">Against</th>
+                      <th scope="col">Time</th>
+                      <th scope="col">Won</th>
+                    </tr>
                 </thead>
                 <tbody>
                 </tbody>
