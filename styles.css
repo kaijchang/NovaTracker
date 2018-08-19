@@ -23,6 +23,7 @@ html {
 
 body {
   margin-bottom: 60px;
+  -webkit-user-select: none;
   -webkit-app-region: drag;
 }
 
@@ -59,4 +60,8 @@ table .progress {
 
 .progress-bar {
     border-radius: 4px;
+}
+
+a, select {
+    -webkit-app-region: no-drag !important;
 }
