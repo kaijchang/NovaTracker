@@ -177,40 +177,38 @@ function updateStats() {
 
         $('<li class="list-group-item bg-dark">~' + averageLength.toFixed(2) + ' Minutes per Game</li>').hide().appendTo(".list-group").show("normal");
 
-        // below is super inefficient way to get top ten most played cards
+        var aspectPairings = [];
 
-        var playedCards = logs.reduce((cards, game) => {
-            return cards.concat(game["LogElements"].filter(move => move["EventType"] == "ResolveEvent").map(move => move["SourceCardId"]));
-        }, []);
+        logs.forEach(game => {
+            var aspects = deckAspects(game);
+            aspectPairings.push(aspects["playerAspects"].sort().join(","));
+            aspectPairings.push(aspects["opponentAspects"].sort().join(","));
+        });
 
-        var cards = JSON.parse(fs.readFileSync(path.join(game_folder, card_file)))["Cards"];
-
-        var cardIds = cards.map(card => card["CardId"])
-        var playedCards = playedCards.map(playedCard => cards[cardIds.indexOf(playedCard)]["Name"]);
-
-        var mode = playedCards.reduce((mode, card) => {
-            if (mode[0].includes(card)) {mode[1][mode[0].indexOf(card)]++;} else {mode[0].push(card); mode[1].push(1)}; return mode;
+        var mode = aspectPairings.reduce((mode, aspect) => {
+            if (mode[0].includes(aspect)) {mode[1][mode[0].indexOf(aspect)]++;} else {mode[0].push(aspect); mode[1].push(1)}; return mode;
         }, [[], []]);
 
-        var topCards = {};
+        var topPairings = {};
 
-        while (Object.keys(topCards).length < 10 && mode[0][0] !== undefined) {
+        while (Object.keys(topPairings).length < 10 && mode[0][0] !== undefined) {
             var max = Math.max(...mode[1]);
-            topCards[mode[0][mode[1].indexOf(max)]] = max;
+            topPairings[mode[0][mode[1].indexOf(max)]] = max;
             mode[0].splice(mode[1].indexOf(max), 1);
             mode[1].splice(mode[1].indexOf(max), 1);
         }
 
-        Object.keys(topCards).forEach(card => {
+        console.log(topPairings);
+
+        Object.keys(topPairings).forEach(pairing => {
             $(`<tr>
-                   <td>` + (Object.keys(topCards).indexOf(card) + 1) + `</td>
+                   <td>` + (Object.keys(topPairings).indexOf(pairing) + 1) + `</td>
                    <td>
                        <div class="progress">
-                           <div class="progress-bar" role="progressbar" aria-valuenow="` + topCards[card] + `" aria-valuemin="0" aria-valuemax="` + Math.max(...Object.values(topCards)) + `" style="width: ` + Math.round(topCards[card] / Math.max(...Object.values(topCards)) * 100) + `%"></div>
+                           <div class="progress-bar" role="progressbar" aria-valuenow="` + topPairings[pairing] + `" aria-valuemin="0" aria-valuemax="` + Math.max(...Object.values(topPairings)) + `" style="width: ` + Math.round(topPairings[pairing] / Math.max(...Object.values(topPairings)) * 100) + `%"></div>
                        </div>
                    </td>
-                   <td>` + card + `</td>
-                   <td>` + topCards[card] + `</td>
+                   <td>` + pairing.split(",").map(aspect => '<img src="images/' + aspect + '.png" height="30" width="30">').join("") + `</td>
                </tr>`).hide().appendTo("tbody").show("normal");
         });
     });
@@ -298,8 +296,7 @@ function statsPage() {
                                         <tr>
                                             <th>#</th>
                                             <th>Rank</th>
-                                            <th>Name</th>
-                                            <th>Plays</th>
+                                            <th>Pairing</th>
                                         </tr>
                                     </thead>
                                     <tbody>
