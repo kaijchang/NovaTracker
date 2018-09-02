@@ -168,14 +168,21 @@ function updateStats() {
             return sum + Number(a)
         }, 0) / gameLengths.length;
 
-        $('<li class="list-group-item bg-dark">~' + averageLength.toFixed(2) + ' Turns per Game</li>').hide().appendTo(".list-group").show("normal");
+        $('<li class="list-group-item bg-dark">~' + averageLength.toFixed(2) + ' Turns per Game</li>')
+            .hide()
+            .appendTo(".list-group")
+            .show("normal");
 
         var gameLengths = logs.map(game => moment.duration(moment(game["LogElements"][game["LogElements"].length - 1]["LogTime"]).diff(moment(game["StartTime"]))).asMinutes());
+    
         var averageLength = gameLengths.reduce(function(sum, a) {
             return sum + Number(a)
         }, 0) / gameLengths.length;
 
-        $('<li class="list-group-item bg-dark">~' + averageLength.toFixed(2) + ' Minutes per Game</li>').hide().appendTo(".list-group").show("normal");
+        $('<li class="list-group-item bg-dark">~' + averageLength.toFixed(2) + ' Minutes per Game</li>')
+            .hide()
+            .appendTo(".list-group")
+            .show("normal");
 
         var aspectPairings = [];
 
@@ -186,7 +193,7 @@ function updateStats() {
         });
 
         var mode = aspectPairings.reduce((mode, aspect) => {
-            if (mode[0].includes(aspect)) {mode[1][mode[0].indexOf(aspect)]++;} else {mode[0].push(aspect); mode[1].push(1)}; return mode;
+            if (mode[0].includes(aspect)) {mode[1][mode[0].indexOf(aspect)]++} else {mode[0].push(aspect); mode[1].push(1)}; return mode;
         }, [[], []]);
 
         var topPairings = {};
@@ -417,7 +424,7 @@ $("a:contains(Games)").click(gamePage);
 $("a:contains(Stats)").click(statsPage);
 
 
-$("a[href!='#']").click(function(e) {
+$("a[href!='#']").click(() => {
     e.preventDefault();
 
     open($(this).attr("href"));

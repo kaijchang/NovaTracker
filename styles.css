@@ -11,7 +11,7 @@ body {
   -webkit-app-region: drag;
 }
 
-.nav-pills > li > a.active {
+.nav-pills > li > .active {
   background-color: gray !important;
 }
 
@@ -33,7 +33,7 @@ body > .container {
   background-color: #343a40;
 }
 
-img.disabled {
+.disabled {
     opacity: 0.5;
 }
 
