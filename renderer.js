@@ -4,12 +4,12 @@ const open = require("open");
 const homedir = require("os").homedir();
 const moment = require("moment");
 
-let game_folder;
-let log_folder;
-let card_file;
+var game_folder;
+var log_folder;
+var card_file;
 
-let overallWinRate;
-let winRateByAspect;
+var overallWinRate;
+var winRateByAspect;
 
 
 // Finding file locations
