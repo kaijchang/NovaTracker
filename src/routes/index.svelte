@@ -161,9 +161,9 @@
 	Current Rating: {currentRating}
 </p>
 <p>
-	Estimated Change for Beating S.A.R.A.H.: +{Math.floor(
-		newRating(currentRating, SARAH_RATING, true)
-	) - currentRating} Points
+	Estimated Change for S.A.R.A.H.: +{Math.floor(newRating(currentRating, SARAH_RATING, true)) -
+		currentRating} Points / {Math.floor(newRating(currentRating, SARAH_RATING, false)) -
+		currentRating} Points
 </p>
 
 {#each leaderboard.slice(0, 10) as leaderboardEntry}
