@@ -1,10 +1,11 @@
-const K = 40
+const K = 600
 
 export const SARAH_RATING = 10000
 
+// Empirically from https://www.desmos.com/calculator/0qbh8plcnn
 export const newRating = (playerRating: number, opponentRating: number, won: boolean): number => {
-	const expectedScore = 1 / (1 + Math.pow(10, (playerRating - opponentRating) / 400))
-	return playerRating + K * ((won ? 1 : 0) - expectedScore)
+	const expectedScore = 1 / (1 + Math.pow(10, (opponentRating - playerRating) / 9955))
+	return playerRating + (K * ((won ? 1 : 0) - expectedScore)) / (won ? 1 : 0.5)
 }
 
 export const numWinsSARAHNeededToRating = (currentRating: number, target: number): number => {

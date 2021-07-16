@@ -25,7 +25,7 @@
 	import SvgLine from '@sveltejs/pancake/components/SvgLine.svelte'
 
 	import dayjs from 'dayjs'
-	import duration from 'dayjs/plugin/duration'
+	import duration, { Duration } from 'dayjs/plugin/duration'
 	import relativeTime from 'dayjs/plugin/relativeTime'
 	dayjs.extend(duration)
 	dayjs.extend(relativeTime)
@@ -41,7 +41,7 @@
 		LogElements: RichLogElement[]
 		StartTime: dayjs.Dayjs
 		EndTime: dayjs.Dayjs
-		Duration: plugin.Duration
+		Duration: Duration
 		RatingInformation?: {
 			newRating: number
 			ratingChange: number
@@ -75,17 +75,20 @@
 								ratingChange: arr[idx - 1].PlayerPlayerData.rating - game.PlayerPlayerData.rating,
 						  }
 						: {
-								newRating: newRating(
-									game.PlayerPlayerData.rating,
-									game.OpponentPlayerData.rating || SARAH_RATING,
-									game.IsPlayerWinner
-								),
-								ratingChange:
+								newRating: Math.round(
 									newRating(
 										game.PlayerPlayerData.rating,
 										game.OpponentPlayerData.rating || SARAH_RATING,
 										game.IsPlayerWinner
-									) - game.PlayerPlayerData.rating,
+									)
+								),
+								ratingChange: Math.round(
+									newRating(
+										game.PlayerPlayerData.rating,
+										game.OpponentPlayerData.rating || SARAH_RATING,
+										game.IsPlayerWinner
+									) - game.PlayerPlayerData.rating
+								),
 						  },
 			}
 		}) as RichWrappedGame[]
@@ -112,6 +115,13 @@
 	const averageGameTime =
 		filteredGames.reduce((acc, cur) => acc - cur.Duration.asSeconds(), 0) / filteredGames.length +
 		AVG_DOWNTIME_BTWN_GAMES
+
+	// DESMOS DATA
+	/*
+	console.log(filteredGames.map((game) => {
+		return `${Math.abs((game.OpponentPlayerData.rating || SARAH_RATING) - game.PlayerPlayerData.rating)},${game.IsPlayerWinner ? game.RatingInformation.ratingChange : -game.RatingInformation.ratingChange * 2}`
+	}).join('\n'))
+	*/
 </script>
 
 <div class="chart">
@@ -142,8 +152,9 @@
 	Estimated Rating: {estimatedCurrentRating}
 </p>
 <p>
-	Estimated Change for Beating S.A.R.A.H.: +{newRating(estimatedCurrentRating, 10000, true) -
-		estimatedCurrentRating} Points
+	Estimated Change for Beating S.A.R.A.H.: +{Math.round(
+		newRating(estimatedCurrentRating, SARAH_RATING, true)
+	) - estimatedCurrentRating} Points
 </p>
 
 {#each [3, 4] as order}
@@ -169,7 +180,8 @@
 		{dayjs.duration(game.EndTime.diff(now)).humanize(true)} - against {game.OpponentPlayerData
 			.displayName} - lasted {game.Duration.humanize()} - {idx === 0 ? '~' : ''}{game.IsPlayerWinner
 			? '+'
-			: ''}{game.RatingInformation.ratingChange} points
+			: ''}{Math.round(game.RatingInformation.ratingChange)} points - {game.PlayerPlayerData.rating}
+		/ {game.OpponentPlayerData.rating || SARAH_RATING}
 	</p>
 {/each}
 
