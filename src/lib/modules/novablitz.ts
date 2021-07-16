@@ -5,6 +5,8 @@ import path from 'path'
 import os from 'os'
 import fs from 'fs'
 
+import { variables } from '$lib/variables'
+
 type GameFormat = 'Casual' | 'Draft'
 
 interface PlayerData {
@@ -129,7 +131,7 @@ export const fetchLeaderboard = async (): Promise<Leaderboard> => {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
-			'X-Authorization': import.meta.env.VITE_PUBLIC_AUTHORIZATION_TOKEN,
+			'X-Authorization': variables.AUTHORIZATION_TOKEN,
 		},
 		body: JSON.stringify({ StatisticName: '2021_7_rating', StartPosition: 0, MaxResultsCount: 50 }),
 	})

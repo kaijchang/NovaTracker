@@ -1,5 +1,6 @@
 <script context="module" lang="ts">
 	import type { Load } from '@sveltejs/kit'
+	import { variables } from '$lib/variables'
 
 	export const load: Load = async ({ fetch }) => {
 		const games_url = '/games.json'
@@ -22,7 +23,7 @@
 			props: {
 				games: await games_res.json(),
 				leaderboard: await leaderboard_res.json(),
-				playerId: (import.meta.env.VITE_PUBLIC_AUTHORIZATION_TOKEN as string).split('-')[0],
+				playerId: variables.AUTHORIZATION_TOKEN.split('-')[0],
 			},
 		}
 	}
@@ -35,8 +36,8 @@
 	import SvgLine from '@sveltejs/pancake/components/SvgLine.svelte'
 
 	import dayjs from 'dayjs'
-	import duration, { Duration } from 'dayjs/plugin/duration'
-	import relativeTime from 'dayjs/plugin/relativeTime'
+	import duration, { Duration } from 'dayjs/plugin/duration.js'
+	import relativeTime from 'dayjs/plugin/relativeTime.js'
 	dayjs.extend(duration)
 	dayjs.extend(relativeTime)
 
