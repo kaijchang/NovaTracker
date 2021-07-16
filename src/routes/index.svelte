@@ -25,6 +25,10 @@
 	import SvgLine from '@sveltejs/pancake/components/SvgLine.svelte'
 
 	import dayjs from 'dayjs'
+	import duration from 'dayjs/plugin/duration'
+	import relativeTime from 'dayjs/plugin/relativeTime'
+	dayjs.extend(duration)
+	dayjs.extend(relativeTime)
 
 	import type { LogElement, WrappedGame } from '$lib/modules/novablitz'
 	import { newRating, numWinsSARAHNeededToRating, SARAH_RATING } from '$lib/modules/elo'
@@ -36,43 +40,55 @@
 	interface RichWrappedGame extends Omit<WrappedGame, 'LogElements' | 'StartTime'> {
 		LogElements: RichLogElement[]
 		StartTime: dayjs.Dayjs
+		EndTime: dayjs.Dayjs
+		Duration: plugin.Duration
 		RatingInformation?: {
 			newRating: number
 			ratingChange: number
 		}
 	}
 
+	const AVG_DOWNTIME_BTWN_GAMES = 60
+
 	export let games: WrappedGame[]
 
 	const richGames = games
 		.sort((a, b) => b.StartTime.localeCompare(a.StartTime))
-		.map((game, idx, arr) => ({
-			...game,
-			LogElements: game.LogElements.map((logElement) => ({
+		.map((game, idx, arr) => {
+			const LogElements = game.LogElements.map((logElement) => ({
 				...logElement,
 				LogTime: dayjs(logElement.LogTime),
-			})),
-			StartTime: dayjs(game.StartTime),
-			RatingInformation:
-				idx !== 0
-					? {
-							newRating: arr[idx - 1].PlayerPlayerData.rating,
-							ratingChange: arr[idx - 1].PlayerPlayerData.rating - game.PlayerPlayerData.rating,
-					  }
-					: {
-							newRating: newRating(
-								game.PlayerPlayerData.rating,
-								game.OpponentPlayerData.rating || SARAH_RATING,
-								game.IsPlayerWinner
-							),
-							ratingChange:
-								newRating(
+			}))
+			const StartTime = dayjs(game.StartTime)
+			const EndTime = LogElements[LogElements.length - 1].LogTime.clone()
+
+			return {
+				...game,
+				LogElements,
+				StartTime,
+				EndTime,
+				Duration: dayjs.duration(StartTime.diff(EndTime)),
+				RatingInformation:
+					idx !== 0
+						? {
+								newRating: arr[idx - 1].PlayerPlayerData.rating,
+								ratingChange: arr[idx - 1].PlayerPlayerData.rating - game.PlayerPlayerData.rating,
+						  }
+						: {
+								newRating: newRating(
 									game.PlayerPlayerData.rating,
 									game.OpponentPlayerData.rating || SARAH_RATING,
 									game.IsPlayerWinner
-								) - game.PlayerPlayerData.rating,
-					  },
-		})) as RichWrappedGame[]
+								),
+								ratingChange:
+									newRating(
+										game.PlayerPlayerData.rating,
+										game.OpponentPlayerData.rating || SARAH_RATING,
+										game.IsPlayerWinner
+									) - game.PlayerPlayerData.rating,
+						  },
+			}
+		}) as RichWrappedGame[]
 
 	const filteredGames = richGames.filter((game) => game.Format === 'Casual')
 
@@ -92,6 +108,10 @@
 	})
 
 	const estimatedCurrentRating = filteredGames[0].RatingInformation.newRating
+	const now = dayjs()
+	const averageGameTime =
+		filteredGames.reduce((acc, cur) => acc - cur.Duration.asSeconds(), 0) / filteredGames.length +
+		AVG_DOWNTIME_BTWN_GAMES
 </script>
 
 <div class="chart">
@@ -132,15 +152,24 @@
 			Math.pow(10, order)} Points: {numWinsSARAHNeededToRating(
 			estimatedCurrentRating,
 			Math.ceil(estimatedCurrentRating / Math.pow(10, order)) * Math.pow(10, order)
-		)} S.A.R.A.H. Wins
+		)} S.A.R.A.H. Wins - ~{dayjs
+			.duration(
+				numWinsSARAHNeededToRating(
+					estimatedCurrentRating,
+					Math.ceil(estimatedCurrentRating / Math.pow(10, order)) * Math.pow(10, order)
+				) * averageGameTime,
+				'seconds'
+			)
+			.humanize()}
 	</p>
 {/each}
 
 {#each filteredGames as game, idx}
 	<p>
-		{game._id} - {game.OpponentPlayerData.displayName} - {idx === 0 ? '~' : ''}{game.IsPlayerWinner
+		{dayjs.duration(game.EndTime.diff(now)).humanize(true)} - against {game.OpponentPlayerData
+			.displayName} - lasted {game.Duration.humanize()} - {idx === 0 ? '~' : ''}{game.IsPlayerWinner
 			? '+'
-			: ''}{game.RatingInformation.ratingChange}
+			: ''}{game.RatingInformation.ratingChange} points
 	</p>
 {/each}
 
@@ -183,7 +212,7 @@
 	}
 
 	path.data {
-		stroke: rgba(0, 0, 0, 0.2);
+		stroke: white;
 		stroke-linejoin: round;
 		stroke-linecap: round;
 		stroke-width: 1px;
