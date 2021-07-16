@@ -185,7 +185,7 @@
 {#each filteredGames as game, idx}
 	<p>
 		{dayjs.duration(game.EndTime.diff(now)).humanize(true)} - against {game.OpponentPlayerData
-			.displayName} - lasted {game.Duration.humanize()} - {idx === 0 ? '~' : ''}{game.IsPlayerWinner
+			.displayName} - lasted {game.Duration.humanize()} - {game.IsPlayerWinner
 			? '+'
 			: ''}{Math.round(game.RatingInformation.ratingChange)} points - {game.PlayerPlayerData.rating}
 		/ {game.OpponentPlayerData.rating}
