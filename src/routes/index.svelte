@@ -188,7 +188,10 @@
 		{dayjs.duration(game.EndTime.diff(now)).humanize(true)} - against {game.OpponentPlayerData
 			.displayName} - lasted {game.Duration.humanize()} - {game.IsPlayerWinner
 			? '+'
-			: ''}{Math.round(game.RatingInformation.ratingChange)} points - {game.PlayerPlayerData.rating}
+			: ''}{Math.round(game.RatingInformation.ratingChange)} ({Math.floor(
+			newRating(game.PlayerPlayerData.rating, game.OpponentPlayerData.rating, game.IsPlayerWinner) -
+				game.PlayerPlayerData.rating
+		)}) points - {game.PlayerPlayerData.rating}
 		/ {game.OpponentPlayerData.rating}
 	</p>
 {/each}
