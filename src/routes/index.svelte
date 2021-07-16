@@ -61,6 +61,10 @@
 			}))
 			const StartTime = dayjs(game.StartTime)
 			const EndTime = LogElements[LogElements.length - 1].LogTime.clone()
+			const opponentRating = game.OpponentPlayerData.rating || SARAH_RATING
+
+			const newRating_ =
+				idx === 0 && newRating(game.PlayerPlayerData.rating, opponentRating, game.IsPlayerWinner)
 
 			return {
 				...game,
@@ -75,21 +79,13 @@
 								ratingChange: arr[idx - 1].PlayerPlayerData.rating - game.PlayerPlayerData.rating,
 						  }
 						: {
-								newRating: Math.round(
-									newRating(
-										game.PlayerPlayerData.rating,
-										game.OpponentPlayerData.rating || SARAH_RATING,
-										game.IsPlayerWinner
-									)
-								),
-								ratingChange: Math.round(
-									newRating(
-										game.PlayerPlayerData.rating,
-										game.OpponentPlayerData.rating || SARAH_RATING,
-										game.IsPlayerWinner
-									) - game.PlayerPlayerData.rating
-								),
+								newRating: Math.round(newRating_),
+								ratingChange: Math.round(newRating_) - game.PlayerPlayerData.rating,
 						  },
+				OpponentPlayerData: {
+					...game.OpponentPlayerData,
+					rating: opponentRating,
+				},
 			}
 		}) as RichWrappedGame[]
 
@@ -119,7 +115,7 @@
 	// DESMOS DATA
 	/*
 	console.log(filteredGames.map((game) => {
-		return `${Math.abs((game.OpponentPlayerData.rating || SARAH_RATING) - game.PlayerPlayerData.rating)},${game.IsPlayerWinner ? game.RatingInformation.ratingChange : -game.RatingInformation.ratingChange * 2}`
+		return `${Math.abs((game.OpponentPlayerData.rating) - game.PlayerPlayerData.rating)},${game.IsPlayerWinner ? game.RatingInformation.ratingChange : -game.RatingInformation.ratingChange * 2}`
 	}).join('\n'))
 	*/
 </script>
@@ -181,7 +177,7 @@
 			.displayName} - lasted {game.Duration.humanize()} - {idx === 0 ? '~' : ''}{game.IsPlayerWinner
 			? '+'
 			: ''}{Math.round(game.RatingInformation.ratingChange)} points - {game.PlayerPlayerData.rating}
-		/ {game.OpponentPlayerData.rating || SARAH_RATING}
+		/ {game.OpponentPlayerData.rating}
 	</p>
 {/each}
 
