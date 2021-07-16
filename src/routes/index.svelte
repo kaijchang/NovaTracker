@@ -182,7 +182,7 @@
 	</p>
 {/each}
 
-{#each filteredGames as game, idx}
+{#each filteredGames as game}
 	<p>
 		{dayjs.duration(game.EndTime.diff(now)).humanize(true)} - against {game.OpponentPlayerData
 			.displayName} - lasted {game.Duration.humanize()} - {game.IsPlayerWinner
