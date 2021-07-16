@@ -121,8 +121,9 @@
 	})
 
 	const now = dayjs()
+	const numGamesToSample = 25
 	const averageGameTime =
-		filteredGames.reduce((acc, cur) => acc - cur.Duration.asSeconds(), 0) / filteredGames.length +
+		filteredGames.slice(0, numGamesToSample).reduce((acc, cur) => acc - cur.Duration.asSeconds(), 0) / numGamesToSample +
 		AVG_DOWNTIME_BTWN_GAMES
 
 	// DESMOS DATA
