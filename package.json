@@ -1,6 +1,6 @@
 {
-  "name": "~TODO~",
-  "version": "0.0.1",
+  "name": "@kajchang/novatracker",
+  "version": "0.1.0",
   "scripts": {
     "dev": "svelte-kit dev",
     "build": "svelte-kit build",
@@ -25,5 +25,8 @@
     "tslib": "^2.0.0",
     "typescript": "^4.0.0"
   },
-  "type": "module"
+  "type": "module",
+  "dependencies": {
+    "nedb": "^1.8.0"
+  }
 }
