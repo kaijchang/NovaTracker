@@ -161,7 +161,7 @@
 	Current Rating: {currentRating}
 </p>
 <p>
-	Estimated Change for Beating S.A.R.A.H.: +{Math.round(
+	Estimated Change for Beating S.A.R.A.H.: +{Math.floor(
 		newRating(currentRating, SARAH_RATING, true)
 	) - currentRating} Points
 </p>
