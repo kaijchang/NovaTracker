@@ -16,8 +16,8 @@ db.loadDatabase()
 
 export const persistGames = (): void => {
 	db.find({}, { _id: 1, StartTime: 1 }, (_, documents) => {
-		const _ids = documents.map((document) => document._id)
-		db.insert(fetchGames().filter((game) => !_ids.includes(game._id)))
+		const _ids = new Set(documents.map((document) => document._id))
+		db.insert(fetchGames().filter((game) => !_ids.has(game._id)))
 	})
 }
 persistGames()

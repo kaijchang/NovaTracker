@@ -43,7 +43,7 @@ type EventType = string
 type Phase = string
 type DateTimeString = string
 
-interface LogElement {
+export interface LogElement {
 	RelevantEvents: []
 	SelfId: PlayerId
 	OppId: PlayerId

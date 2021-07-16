@@ -1,6 +1,5 @@
 import type { RequestHandler } from '@sveltejs/kit'
 
-import { fetchGames } from '$lib/modules/novablitz'
 import db from '$lib/db'
 
 export const get: RequestHandler = () => {
