@@ -1,3 +1,4 @@
+import fetch from 'node-fetch'
 import process from 'process'
 import crypto from 'crypto'
 import path from 'path'
@@ -69,9 +70,24 @@ export interface WrappedGame extends Game {
 	_id: string
 }
 
+interface LeaderboardEntry {
+	PlayFabId: string
+	DisplayName: string
+	StatValue: number
+	Position: number
+	Profile: {
+		PublisherId: string
+		TitleId: string
+		PlayerId: string
+		DisplayName: string
+	}
+}
+
+export type Leaderboard = LeaderboardEntry[]
+
 let gameDataDirectory
 let logDirectory
-let cardFile
+// let cardFile
 
 if (process.platform == 'darwin') {
 	gameDataDirectory = path.join(
@@ -85,13 +101,13 @@ if (process.platform == 'darwin') {
 fs.readdirSync(gameDataDirectory).forEach((file) => {
 	if (/^[A-Z0-9]{16}$/.test(file)) {
 		logDirectory = file
-	} else if (
+	} /* else if (
 		/^[0-9]-[0-9]{2}-[0-9]_client_card_[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}$/.test(
 			file
 		)
 	) {
 		cardFile = file
-	}
+	} */
 })
 
 const generateGameId = (game: Game) => {
@@ -106,4 +122,17 @@ export const fetchGames = (): WrappedGame[] => {
 		...game,
 		_id: generateGameId(game),
 	}))
+}
+
+export const fetchLeaderboard = async (): Promise<Leaderboard> => {
+	const res = await fetch('https://721f.playfabapi.com/Client/GetLeaderboard', {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+			'X-Authorization': import.meta.env.VITE_PUBLIC_AUTHORIZATION_TOKEN,
+		},
+		body: JSON.stringify({ StatisticName: '2021_7_rating', StartPosition: 0, MaxResultsCount: 50 }),
+	})
+
+	return (await res.json())['data']['Leaderboard']
 }

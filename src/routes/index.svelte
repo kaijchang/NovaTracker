@@ -2,18 +2,28 @@
 	import type { Load } from '@sveltejs/kit'
 
 	export const load: Load = async ({ fetch }) => {
-		const url = `/index.json`
-		const res = await fetch(url)
-		if (res.ok) {
+		const games_url = '/games.json'
+		const games_res = await fetch(games_url)
+		if (!games_res.ok) {
 			return {
-				props: {
-					games: await res.json(),
-				},
+				status: games_res.status,
+				error: new Error(`Could not load ${games_url}`),
+			}
+		}
+		const leaderboard_url = '/leaderboard.json'
+		const leaderboard_res = await fetch(leaderboard_url)
+		if (!leaderboard_res.ok) {
+			return {
+				status: leaderboard_res.status,
+				error: new Error(`Could not load ${games_url}`),
 			}
 		}
 		return {
-			status: res.status,
-			error: new Error(`Could not load ${url}`),
+			props: {
+				games: await games_res.json(),
+				leaderboard: await leaderboard_res.json(),
+				playerId: (import.meta.env.VITE_PUBLIC_AUTHORIZATION_TOKEN as string).split('-')[0],
+			},
 		}
 	}
 </script>
@@ -30,7 +40,7 @@
 	dayjs.extend(duration)
 	dayjs.extend(relativeTime)
 
-	import type { LogElement, WrappedGame } from '$lib/modules/novablitz'
+	import type { Leaderboard, LogElement, WrappedGame } from '$lib/modules/novablitz'
 	import { newRating, numWinsSARAHNeededToRating, SARAH_RATING } from '$lib/modules/elo'
 
 	interface RichLogElement extends Omit<LogElement, 'LogTime'> {
@@ -51,6 +61,12 @@
 	const AVG_DOWNTIME_BTWN_GAMES = 60
 
 	export let games: WrappedGame[]
+	export let leaderboard: Leaderboard
+	export let playerId: string
+
+	const currentRating = leaderboard.find(
+		(leaderboardEntry) => leaderboardEntry.PlayFabId === playerId
+	).StatValue
 
 	const richGames = games
 		.sort((a, b) => b.StartTime.localeCompare(a.StartTime))
@@ -62,9 +78,6 @@
 			const StartTime = dayjs(game.StartTime)
 			const EndTime = LogElements[LogElements.length - 1].LogTime.clone()
 			const opponentRating = game.OpponentPlayerData.rating || SARAH_RATING
-
-			const newRating_ =
-				idx === 0 && newRating(game.PlayerPlayerData.rating, opponentRating, game.IsPlayerWinner)
 
 			return {
 				...game,
@@ -79,8 +92,8 @@
 								ratingChange: arr[idx - 1].PlayerPlayerData.rating - game.PlayerPlayerData.rating,
 						  }
 						: {
-								newRating: Math.round(newRating_),
-								ratingChange: Math.round(newRating_) - game.PlayerPlayerData.rating,
+								newRating: currentRating,
+								ratingChange: currentRating - game.PlayerPlayerData.rating,
 						  },
 				OpponentPlayerData: {
 					...game.OpponentPlayerData,
@@ -106,7 +119,6 @@
 		if (y > y2) y2 = y
 	})
 
-	const estimatedCurrentRating = filteredGames[0].RatingInformation.newRating
 	const now = dayjs()
 	const averageGameTime =
 		filteredGames.reduce((acc, cur) => acc - cur.Duration.asSeconds(), 0) / filteredGames.length +
@@ -145,29 +157,28 @@
 </div>
 
 <p>
-	Estimated Rating: {estimatedCurrentRating}
+	Current Rating: {currentRating}
 </p>
 <p>
 	Estimated Change for Beating S.A.R.A.H.: +{Math.round(
-		newRating(estimatedCurrentRating, SARAH_RATING, true)
-	) - estimatedCurrentRating} Points
+		newRating(currentRating, SARAH_RATING, true)
+	) - currentRating} Points
 </p>
 
-{#each [3, 4] as order}
+{#each leaderboard.slice(0, 10) as leaderboardEntry}
 	<p>
-		Estimated Road to {Math.ceil(estimatedCurrentRating / Math.pow(10, order)) *
-			Math.pow(10, order)} Points: {numWinsSARAHNeededToRating(
-			estimatedCurrentRating,
-			Math.ceil(estimatedCurrentRating / Math.pow(10, order)) * Math.pow(10, order)
-		)} S.A.R.A.H. Wins - ~{dayjs
-			.duration(
-				numWinsSARAHNeededToRating(
-					estimatedCurrentRating,
-					Math.ceil(estimatedCurrentRating / Math.pow(10, order)) * Math.pow(10, order)
-				) * averageGameTime,
-				'seconds'
-			)
-			.humanize()}
+		#{leaderboardEntry.Position + 1} - {leaderboardEntry.DisplayName} - {leaderboardEntry.StatValue}
+		- {leaderboardEntry.StatValue > currentRating
+			? numWinsSARAHNeededToRating(currentRating, leaderboardEntry.StatValue)
+			: 'N/A'} S.A.R.A.H. Wins - {leaderboardEntry.StatValue > currentRating
+			? dayjs
+					.duration(
+						numWinsSARAHNeededToRating(currentRating, leaderboardEntry.StatValue) * averageGameTime,
+						'seconds'
+					)
+					.asHours()
+					.toFixed(1)
+			: 'N/A'} Hours
 	</p>
 {/each}
 
