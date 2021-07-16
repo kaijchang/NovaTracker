@@ -59,7 +59,7 @@ interface LogElement {
 interface Game {
 	LogElements: LogElement[]
 	Format: GameFormat
-	startTime: DateTimeString
+	StartTime: DateTimeString
 	IsPlayerWinner: boolean
 	PlayerPlayerData: PlayerPlayerData
 	OpponentPlayerData: OpponentPlayerData

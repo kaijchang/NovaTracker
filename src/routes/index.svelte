@@ -9,7 +9,6 @@
 				props: {
 					games: await res.json(),
 				},
-				maxage: 300,
 			}
 		}
 		return {
@@ -25,4 +24,7 @@
 	export let games: WrappedGame[]
 </script>
 
-{JSON.stringify(games)}
+{games.length}
+{#each games.sort((a, b) => b.StartTime.localeCompare(a.StartTime)) as game}
+	<p>{game._id} - {game.OpponentPlayerData.displayName} - {game.StartTime}</p>
+{/each}
