@@ -1,14 +1,12 @@
 import type { RequestHandler } from '@sveltejs/kit'
 
-import db from '$lib/db'
+import db, { persistGames } from '$lib/db'
 
-export const get: RequestHandler = () => {
-	return new Promise((resolve, reject) => {
-		db.find({}).exec((err, documents) => {
-			if (err) reject(err)
-			resolve({
-				body: documents,
-			})
-		})
-	})
+export const get: RequestHandler = async () => {
+	await persistGames()
+	console.log('refetched and persisted games')
+	const documents = await db.find({})
+	return {
+		body: documents,
+	}
 }

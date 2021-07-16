@@ -136,10 +136,11 @@
 	</p>
 {/each}
 
-{#each filteredGames as game}
+{#each filteredGames as game, idx}
 	<p>
-		{game._id} - {game.OpponentPlayerData.displayName} - {game.IsPlayerWinner ? '+' : ''}{game
-			.RatingInformation.ratingChange}
+		{game._id} - {game.OpponentPlayerData.displayName} - {idx === 0 ? '~' : ''}{game.IsPlayerWinner
+			? '+'
+			: ''}{game.RatingInformation.ratingChange}
 	</p>
 {/each}
 

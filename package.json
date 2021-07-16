@@ -20,6 +20,7 @@
 		"eslint": "^7.22.0",
 		"eslint-config-prettier": "^8.1.0",
 		"eslint-plugin-svelte3": "^3.2.0",
+		"nedb-promises": "^5.0.0",
 		"prettier": "~2.2.1",
 		"prettier-plugin-svelte": "^2.2.0",
 		"svelte": "^3.34.0",
@@ -29,7 +30,5 @@
 		"typescript": "^4.0.0"
 	},
 	"type": "module",
-	"dependencies": {
-		"nedb": "^1.8.0"
-	}
+	"dependencies": {}
 }
