@@ -18,6 +18,7 @@ export const persistGames = async (): Promise<WrappedGame[]> => {
 	const _ids = new Set(documents.map((document) => document._id))
 	return await db.insert(fetchGames().filter((game) => !_ids.has(game._id)))
 }
+
 persistGames()
 	.then(() => console.log('fetched and persisted games'))
 	.catch((err) => console.error(`error fetching or persisting games: ${err.toString()}`))

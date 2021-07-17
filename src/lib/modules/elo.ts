@@ -8,7 +8,7 @@ export const newRating = (playerRating: number, opponentRating: number, won: boo
 	return playerRating + (K * ((won ? 1 : 0) - expectedScore)) / (won ? 1 : 2)
 }
 
-export const numWinsSARAHNeededToRating = (currentRating: number, target: number): number => {
+export const numSARAHWinsNeededToRating = (currentRating: number, target: number): number => {
 	let _currentRating = currentRating
 	let numWins = 0
 	while (_currentRating < target) {

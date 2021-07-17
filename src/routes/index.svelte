@@ -41,8 +41,10 @@
 	dayjs.extend(duration)
 	dayjs.extend(relativeTime)
 
+	import Stat from '$lib/components/Stat.svelte'
+
 	import type { Leaderboard, LogElement, WrappedGame } from '$lib/modules/novablitz'
-	import { newRating, numWinsSARAHNeededToRating, SARAH_RATING } from '$lib/modules/elo'
+	import { newRating, numSARAHWinsNeededToRating, SARAH_RATING } from '$lib/modules/elo'
 
 	interface RichLogElement extends Omit<LogElement, 'LogTime'> {
 		LogTime: dayjs.Dayjs
@@ -103,7 +105,7 @@
 			}
 		}) as RichWrappedGame[]
 
-	const filteredGames = richGames.filter((game) => game.Format === 'Casual')
+	const filteredGames = richGames
 
 	let x1 = +Infinity
 	let x2 = -Infinity
@@ -123,8 +125,14 @@
 	const now = dayjs()
 	const numGamesToSample = 25
 	const averageGameTime =
-		filteredGames.slice(0, numGamesToSample).reduce((acc, cur) => acc - cur.Duration.asSeconds(), 0) / numGamesToSample +
+		filteredGames
+			.slice(0, numGamesToSample)
+			.reduce((acc, cur) => acc - cur.Duration.asSeconds(), 0) /
+			numGamesToSample +
 		AVG_DOWNTIME_BTWN_GAMES
+
+	const numWins = filteredGames.filter((game) => game.IsPlayerWinner).length
+	const numLosses = filteredGames.length - numWins
 
 	// DESMOS DATA
 	/*
@@ -132,6 +140,18 @@
 		return `${Math.abs((game.OpponentPlayerData.rating) - game.PlayerPlayerData.rating)},${game.IsPlayerWinner ? game.RatingInformation.ratingChange : -game.RatingInformation.ratingChange * 2}`
 	}).join('\n'))
 	*/
+
+	const leaderBoardEntryToRoad = (leaderboardEntry: Leaderboard[number]): string => {
+		if (leaderboardEntry.PlayFabId === playerId) return 'You!'
+		let numSARAHWinsNeeded
+		if (leaderboardEntry.StatValue >= currentRating) {
+			numSARAHWinsNeeded = numSARAHWinsNeededToRating(currentRating, leaderboardEntry.StatValue)
+		} else {
+			numSARAHWinsNeeded = numSARAHWinsNeededToRating(leaderboardEntry.StatValue, currentRating)
+		}
+		const estimatedTimeNeeded = dayjs.duration(numSARAHWinsNeeded * averageGameTime, 'seconds')
+		return `${numSARAHWinsNeeded} Wins / ${estimatedTimeNeeded.asHours().toFixed(2)} hrs`
+	}
 </script>
 
 <div class="chart">
@@ -158,46 +178,135 @@
 	</Chart>
 </div>
 
-<p>
-	Current Rating: {currentRating}
-</p>
-<p>
-	Estimated Change for S.A.R.A.H.: +{Math.floor(newRating(currentRating, SARAH_RATING, true)) -
-		currentRating} Points / {Math.floor(newRating(currentRating, SARAH_RATING, false)) -
-		currentRating} Points
-</p>
-
-{#each leaderboard.slice(0, 10) as leaderboardEntry}
-	<p>
-		#{leaderboardEntry.Position + 1} - {leaderboardEntry.DisplayName} - {leaderboardEntry.StatValue}
-		- {leaderboardEntry.StatValue > currentRating
-			? numWinsSARAHNeededToRating(currentRating, leaderboardEntry.StatValue)
-			: 'N/A'} S.A.R.A.H. Wins - {leaderboardEntry.StatValue > currentRating
-			? dayjs
-					.duration(
-						numWinsSARAHNeededToRating(currentRating, leaderboardEntry.StatValue) * averageGameTime,
-						'seconds'
-					)
-					.asHours()
-					.toFixed(1)
-			: 'N/A'} Hours
-	</p>
-{/each}
-
-{#each filteredGames as game}
-	<p>
-		{dayjs.duration(game.EndTime.diff(now)).humanize(true)} - against {game.OpponentPlayerData
-			.displayName} - lasted {game.Duration.humanize()} - {game.IsPlayerWinner
-			? '+'
-			: ''}{Math.round(game.RatingInformation.ratingChange)} ({Math.floor(
-			newRating(game.PlayerPlayerData.rating, game.OpponentPlayerData.rating, game.IsPlayerWinner) -
-				game.PlayerPlayerData.rating
-		)}) points - {game.PlayerPlayerData.rating}
-		/ {game.OpponentPlayerData.rating}
-	</p>
-{/each}
+<div class="stack horizontal">
+	<div class="card"><Stat label="Current Rating" value={currentRating} /></div>
+	<div class="card">
+		<Stat
+			label="S.A.R.A.H. Rating Change"
+			value={`+${Math.floor(newRating(currentRating, SARAH_RATING, true)) - currentRating} / ${
+				Math.floor(newRating(currentRating, SARAH_RATING, false)) - currentRating
+			}`}
+		/>
+	</div>
+	<div class="card">
+		<Stat label="Win Record" value={`${numWins}W / ${numLosses}L`} />
+	</div>
+</div>
+<div class="spacer" />
+<div class="table-wrapper">
+	<table class="table">
+		<thead>
+			<tr>
+				<th>#</th>
+				<th>Rating</th>
+				<th>Name</th>
+				<th>Road</th>
+			</tr>
+		</thead>
+		<tbody>
+			{#each leaderboard.slice(0, 10) as leaderboardEntry, idx}
+				<tr>
+					<td><b>{leaderboardEntry.Position + 1}</b></td>
+					<td
+						>{leaderboardEntry.StatValue}
+						<b>(+{leaderboardEntry.StatValue - leaderboard[idx + 1]?.StatValue})</b></td
+					>
+					<td><b>{leaderboardEntry.DisplayName}</b></td>
+					<td>{leaderBoardEntryToRoad(leaderboardEntry)}</td>
+				</tr>
+			{/each}
+		</tbody>
+	</table>
+</div>
+<div class="spacer" />
+<div class="table-wrapper">
+	<table class="table">
+		<thead>
+			<tr>
+				<th>Time</th>
+				<th>Versus</th>
+				<th>Length</th>
+				<th>Rating Change</th>
+				<th>Ratings</th>
+			</tr>
+		</thead>
+		<tbody>
+			{#each filteredGames as game}
+				<tr>
+					<td>{dayjs.duration(game.EndTime.diff(now)).humanize(true)}</td>
+					<td><b>{game.OpponentPlayerData.displayName}</b></td>
+					<td>{game.Duration.humanize()}</td>
+					<td
+						>{game.IsPlayerWinner ? '+' : ''}{Math.round(game.RatingInformation.ratingChange)} ({Math.floor(
+							newRating(
+								game.PlayerPlayerData.rating,
+								game.OpponentPlayerData.rating,
+								game.IsPlayerWinner
+							) - game.PlayerPlayerData.rating
+						)})</td
+					>
+					<td
+						>{game.PlayerPlayerData.rating}
+						/ {game.OpponentPlayerData.rating}</td
+					>
+				</tr>
+			{/each}
+		</tbody>
+	</table>
+</div>
 
 <style>
+	div.spacer {
+		height: 1rem;
+	}
+
+	div.stack {
+		display: flex;
+	}
+
+	.stack.horizontal {
+		flex-direction: row;
+	}
+
+	.stack.horizontal > * {
+		margin-right: 1rem;
+	}
+
+	div.card {
+		border: 1px solid var(--color-primary);
+		border-radius: 0.25rem;
+		padding: 1rem;
+	}
+
+	.table-wrapper {
+		border: 1px solid var(--color-primary);
+		border-radius: 0.25rem;
+	}
+
+	table.table {
+		border-collapse: collapse;
+		text-align: center;
+		width: 100%;
+	}
+
+	table.table th {
+		font-weight: 600;
+		font-size: 1.25rem;
+	}
+
+	table.table td,
+	th {
+		padding: 0.5rem 0.5rem;
+	}
+
+	table.table thead > tr {
+		border-bottom: 1px solid var(--color-primary);
+	}
+
+	table.table tr:nth-child(even) {
+		background-color: var(--color-background-secondary);
+	}
+
 	.chart {
 		height: 400px;
 		padding: 3em 0 2em 2em;
