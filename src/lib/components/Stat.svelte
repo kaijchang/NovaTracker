@@ -1,11 +1,10 @@
 <script lang="ts">
-	export let value
 	export let label
 </script>
 
 <div>
 	<h2>
-		{value}
+		<slot />
 	</h2>
 	<span>{label}</span>
 </div>

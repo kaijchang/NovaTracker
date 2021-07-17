@@ -179,17 +179,26 @@
 </div>
 
 <div class="stack horizontal">
-	<div class="card"><Stat label="Current Rating" value={currentRating} /></div>
 	<div class="card">
-		<Stat
-			label="S.A.R.A.H. Rating Change"
-			value={`+${Math.floor(newRating(currentRating, SARAH_RATING, true)) - currentRating} / ${
-				Math.floor(newRating(currentRating, SARAH_RATING, false)) - currentRating
-			}`}
-		/>
+		<Stat label="Current Rating">
+			{currentRating}
+		</Stat>
 	</div>
 	<div class="card">
-		<Stat label="Win Record" value={`${numWins}W / ${numLosses}L`} />
+		<Stat label="S.A.R.A.H. Rating Change">
+			<span class="color-green"
+				>+{Math.floor(newRating(currentRating, SARAH_RATING, true)) - currentRating}</span
+			>
+			/
+			<span class="color-red"
+				>{Math.floor(newRating(currentRating, SARAH_RATING, false)) - currentRating}</span
+			>
+		</Stat>
+	</div>
+	<div class="card">
+		<Stat label="Win Record">
+			<span class="color-green">{numWins}W</span> / <span class="color-red">{numLosses}L</span>
+		</Stat>
 	</div>
 </div>
 <div class="spacer" />
@@ -236,7 +245,7 @@
 					<td>{dayjs.duration(game.EndTime.diff(now)).humanize(true)}</td>
 					<td><b>{game.OpponentPlayerData.displayName}</b></td>
 					<td>{game.Duration.humanize()}</td>
-					<td
+					<td class:color-green={game.IsPlayerWinner} class:color-red={!game.IsPlayerWinner}
 						>{game.IsPlayerWinner ? '+' : ''}{Math.round(game.RatingInformation.ratingChange)} ({Math.floor(
 							newRating(
 								game.PlayerPlayerData.rating,
@@ -256,6 +265,14 @@
 </div>
 
 <style>
+	.color-green {
+		color: var(--color-green-primary);
+	}
+
+	.color-red {
+		color: var(--color-red-primary);
+	}
+
 	div.spacer {
 		height: 1rem;
 	}
