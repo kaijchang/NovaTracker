@@ -105,7 +105,7 @@
 			}
 		}) as RichWrappedGame[]
 
-	const filteredGames = richGames
+	const filteredGames = richGames.filter((game) => game.Format !== 'Challenge')
 
 	let x1 = +Infinity
 	let x2 = -Infinity

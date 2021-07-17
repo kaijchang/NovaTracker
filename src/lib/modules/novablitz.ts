@@ -7,7 +7,7 @@ import fs from 'fs'
 
 import { variables } from '$lib/variables'
 
-type GameFormat = 'Casual' | 'Draft'
+type GameFormat = 'Casual' | 'Draft' | 'Challenge'
 
 interface PlayerData {
 	oldQps: number
