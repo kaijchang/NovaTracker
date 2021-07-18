@@ -32,8 +32,10 @@
 <script lang="ts">
 	import Chart from '@sveltejs/pancake/components/Chart.svelte'
 	import Grid from '@sveltejs/pancake/components/Grid.svelte'
+	import Point from '@sveltejs/pancake/components/Point.svelte'
 	import Svg from '@sveltejs/pancake/components/Svg.svelte'
 	import SvgLine from '@sveltejs/pancake/components/SvgLine.svelte'
+	import Quadtree from '@sveltejs/pancake/components/Quadtree.svelte'
 
 	import dayjs from 'dayjs'
 	import duration, { Duration } from 'dayjs/plugin/duration.js'
@@ -107,17 +109,14 @@
 
 	const filteredGames = richGames.filter((game) => game.Format !== 'Challenge')
 
-	let x1 = +Infinity
-	let x2 = -Infinity
+	let x1 = 0
+	let x2 = filteredGames.length - 1
 	let y1 = +Infinity
 	let y2 = -Infinity
 
-	filteredGames.forEach((game, idx) => {
-		const x = filteredGames.length - idx
+	filteredGames.forEach((game) => {
 		const y = game.RatingInformation.newRating
 
-		if (x < x1) x1 = x
-		if (x > x2) x2 = x
 		if (y < y1) y1 = y
 		if (y > y2) y2 = y
 	})
@@ -127,12 +126,33 @@
 	const averageGameTime =
 		filteredGames
 			.slice(0, numGamesToSample)
-			.reduce((acc, cur) => acc - cur.Duration.asSeconds(), 0) /
+			.reduce((sum, game) => sum - game.Duration.asSeconds(), 0) /
 			numGamesToSample +
 		AVG_DOWNTIME_BTWN_GAMES
 
+	const [dateToIndex, indexToDate] = filteredGames
+		.slice()
+		.reverse()
+		.reduce(
+			([dateToIndex, indexToDate], game, idx) => {
+				const date = game.StartTime.format('M/DD')
+				if (!(date in dateToIndex)) {
+					dateToIndex[date] = idx
+					indexToDate[idx] = date
+				}
+				return [dateToIndex, indexToDate]
+			},
+			[{}, {}]
+		)
+
 	const numWins = filteredGames.filter((game) => game.IsPlayerWinner).length
 	const numLosses = filteredGames.length - numWins
+
+	let closest
+	const points = filteredGames.map((game, idx) => ({
+		x: filteredGames.length - 1 - idx,
+		y: game.RatingInformation.newRating,
+	}))
 
 	// DESMOS DATA
 	/*
@@ -160,21 +180,52 @@
 			<div class="grid-line horizontal"><span>{value}</span></div>
 		</Grid>
 
-		<Grid vertical count={5} let:value>
-			<span class="x-label">{value}</span>
+		<Grid vertical ticks={Object.values(dateToIndex)} let:value>
+			<div class="grid-line vertical">
+				<span class="x-label">{indexToDate[value]}</span>
+			</div>
 		</Grid>
 
+		{#if closest}
+			<Point x={closest.x} y={closest.y}>
+				<span class="annotation-point" />
+				<div
+					class="card annotation"
+					style="transform: translate(-{100 * ((closest.x - x1) / (x2 - x1))}%, 0)"
+				>
+					<b
+						>{filteredGames[filteredGames.length - 1 - closest.x].Format} - {filteredGames[
+							filteredGames.length - 1 - closest.x
+						].OpponentPlayerData.displayName}</b
+					>
+					<br />
+					<span
+						>{filteredGames[filteredGames.length - 1 - closest.x].LogElements[
+							filteredGames[filteredGames.length - 1 - closest.x].LogElements.length - 1
+						].LogTime.format('h:mm a')}</span
+					>
+					<br />
+					<b
+						><span
+							class:color-green={filteredGames[filteredGames.length - 1 - closest.x].IsPlayerWinner}
+							class:color-red={!filteredGames[filteredGames.length - 1 - closest.x].IsPlayerWinner}
+							>{filteredGames[filteredGames.length - 1 - closest.x].IsPlayerWinner
+								? '+'
+								: ''}{filteredGames[filteredGames.length - 1 - closest.x].RatingInformation
+								.ratingChange}</span
+						></b
+					>
+				</div>
+			</Point>
+		{/if}
+
 		<Svg>
-			<SvgLine
-				data={filteredGames.map((game, idx) => ({
-					x: filteredGames.length - idx,
-					y: game.RatingInformation.newRating,
-				}))}
-				let:d
-			>
+			<SvgLine data={points} let:d>
 				<path class="data" {d} />
 			</SvgLine>
 		</Svg>
+
+		<Quadtree data={points} bind:closest />
 	</Chart>
 </div>
 
@@ -341,13 +392,25 @@
 		border-bottom: 1px dashed #ccc;
 	}
 
+	.grid-line.vertical {
+		height: 100%;
+		border-right: 1px dashed #ccc;
+	}
+
 	.grid-line span {
 		position: absolute;
-		left: 0;
-		bottom: 2px;
 		font-family: sans-serif;
 		font-size: 14px;
 		color: #999;
+	}
+
+	.grid-line.horizontal span {
+		bottom: 2px;
+		left: 0;
+	}
+
+	.grid-line.vertical span {
+		bottom: -2em;
 	}
 
 	.x-label {
@@ -359,6 +422,23 @@
 		font-size: 14px;
 		color: #999;
 		text-align: center;
+	}
+
+	.annotation {
+		position: absolute;
+		white-space: nowrap;
+		top: 1em;
+		background-color: var(--color-background);
+		z-index: 2;
+	}
+
+	.annotation-point {
+		position: absolute;
+		width: 10px;
+		height: 10px;
+		background-color: var(--color-secondary);
+		border-radius: 50%;
+		transform: translate(-50%, -50%);
 	}
 
 	path.data {
