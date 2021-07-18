@@ -212,8 +212,9 @@
 							>{filteredGames[filteredGames.length - 1 - closest.x].IsPlayerWinner
 								? '+'
 								: ''}{filteredGames[filteredGames.length - 1 - closest.x].RatingInformation
-								.ratingChange}</span
-						></b
+								.ratingChange}</span>
+							<span>{filteredGames[filteredGames.length - 1 - closest.x].RatingInformation.newRating}</span>
+						</b
 					>
 				</div>
 			</Point>
@@ -378,7 +379,7 @@
 	.chart {
 		height: 400px;
 		padding: 3em 0 2em 2em;
-		margin: 0 0 36px 0;
+		margin: 0 36px 36px 0;
 	}
 
 	.grid-line {
