@@ -88,7 +88,7 @@ interface LeaderboardEntry {
 export type Leaderboard = LeaderboardEntry[]
 
 let gameDataDirectory
-let logDirectory
+const logDirectory = variables.PLAYFAB_ID
 // let cardFile
 
 if (process.platform == 'darwin') {
@@ -100,17 +100,19 @@ if (process.platform == 'darwin') {
 	gameDataDirectory = path.join(os.homedir(), 'AppData\\LocalLow\\Dragon Foundry\\NovaBlitz')
 }
 
+/*
 fs.readdirSync(gameDataDirectory).forEach((file) => {
 	if (/^[A-Z0-9]{16}$/.test(file)) {
 		logDirectory = file
-	} /* else if (
+	} else if (
 		/^[0-9]-[0-9]{2}-[0-9]_client_card_[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}$/.test(
 			file
 		)
 	) {
 		cardFile = file
-	} */
+	}
 })
+*/
 
 const generateGameId = (game: Game) => {
 	return crypto.createHash('sha256').update(JSON.stringify(game)).digest('hex')

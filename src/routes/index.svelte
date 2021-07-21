@@ -23,7 +23,7 @@
 			props: {
 				games: await games_res.json(),
 				leaderboard: await leaderboard_res.json(),
-				playerId: variables.AUTHORIZATION_TOKEN.split('-')[0],
+				playerId: variables.PLAYFAB_ID,
 			},
 		}
 	}
@@ -212,10 +212,13 @@
 							>{filteredGames[filteredGames.length - 1 - closest.x].IsPlayerWinner
 								? '+'
 								: ''}{filteredGames[filteredGames.length - 1 - closest.x].RatingInformation
-								.ratingChange}</span>
-							<span>{filteredGames[filteredGames.length - 1 - closest.x].RatingInformation.newRating}</span>
-						</b
-					>
+								.ratingChange}</span
+						>
+						<span
+							>{filteredGames[filteredGames.length - 1 - closest.x].RatingInformation
+								.newRating}</span
+						>
+					</b>
 				</div>
 			</Point>
 		{/if}
