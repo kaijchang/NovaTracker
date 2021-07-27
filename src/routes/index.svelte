@@ -137,8 +137,8 @@
 			([dateToIndex, indexToDate], game, idx) => {
 				const date = game.StartTime.format('M/DD')
 				if (!(date in dateToIndex)) {
-					dateToIndex[date] = idx
-					indexToDate[idx] = date
+					dateToIndex[date] = idx - 1
+					indexToDate[idx - 1] = date
 				}
 				return [dateToIndex, indexToDate]
 			},
